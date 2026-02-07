@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tailwindcss init -p)",
+      "Edit(**)",
+      "Write(**)",
+      "Bash(mkdir src/components src/features src/hooks src/layouts src/pages src/services src/store src/utils)",
+      "Bash(New-Item -ItemType Directory -Path \"src/components\", \"src/features\", \"src/hooks\", \"src/layouts\", \"src/pages\", \"src/services\", \"src/store\", \"src/utils\" -Force)"
+    ]
+  }
+}
