@@ -10,8 +10,8 @@ const MobileContainer: React.FC<MobileContainerProps> = ({
   backgroundColor = 'bg-gray-100',
 }) => {
   return (
-    <div className={`min-h-screen ${backgroundColor} flex items-center justify-center p-4`}>
-      <div className="w-full max-w-[480px] bg-white min-h-screen md:min-h-0 md:shadow-2xl overflow-hidden relative">
+    <div className={`min-h-screen ${backgroundColor} flex items-center justify-center `}>
+      <div className="w-full max-w-[480px] bg-white h-screen md:h-[600px] md:shadow-2xl overflow-hidden relative flex flex-col">
         {children}
       </div>
     </div>

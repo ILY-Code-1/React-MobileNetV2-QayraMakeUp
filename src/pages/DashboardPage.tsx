@@ -16,9 +16,9 @@ const DashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-full flex flex-col bg-gray-50">
       {/* Header */}
-      <div className="bg-black text-white px-6 py-4 flex items-center justify-between shadow-lg">
+      <div className="bg-black text-white px-6 py-4 flex items-center justify-between shadow-lg shrink-0">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-[#C68E2D] rounded-full flex items-center justify-center">
             <div className="w-6 h-6 bg-[#D4A03A] rounded-full"></div>
@@ -34,8 +34,8 @@ const DashboardPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 px-6 py-6 pb-24 space-y-6">
+      {/* Main Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto px-6 py-6 pb-24 space-y-6">
         {/* Profile Section */}
         <div className="flex items-center space-x-4">
           <div className="w-16 h-16 bg-[#C68E2D] rounded-full flex items-center justify-center shadow-md">
@@ -133,8 +133,8 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#C68E2D] shadow-lg md:relative md:shadow-none">
-        <div className="flex justify-around items-center py-4 max-w-[480px] mx-auto">
+      <div className="bg-[#C68E2D] shadow-lg shrink-0">
+        <div className="flex justify-around items-center py-4">
           <button
             onClick={() => setCurrentTab('home')}
             className={`flex flex-col items-center space-y-1 transition-colors ${
