@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Trash2, Calendar, Mail, User } from 'lucide-react';
-import { useAnalysisStore } from '../store/analysisStore';
+import { useAnalysisStore } from '../../store/analysisStore';
 import Swal from 'sweetalert2';
 
 const AnalysisPage: React.FC = () => {

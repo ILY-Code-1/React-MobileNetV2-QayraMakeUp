@@ -1,7 +1,7 @@
 import React from 'react';
 import { User, BarChart3, Upload, Bell, LogOut, Settings } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore } from '../../store/authStore';
 import qayraIcon from '../assets/qayra-icon.png';
 import Swal from 'sweetalert2';
 
