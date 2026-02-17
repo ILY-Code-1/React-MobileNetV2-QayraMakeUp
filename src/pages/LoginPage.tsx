@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import qayraIcon from '../assets/qayra-icon.png';
 
 interface LoginFormData {
   email: string;
@@ -34,14 +35,12 @@ const LoginPage: React.FC = () => {
         <div className="bg-[#C68E2D] rounded-3xl p-8 shadow-2xl">
           {/* Header with Profile Badge */}
           <div className="flex flex-col items-center mb-8">
-            {/* Circular Black Badge with Gold Profile */}
-            <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mb-4 shadow-lg">
-              <div className="w-16 h-16 bg-[#C68E2D] rounded-full flex items-center justify-center">
-                <div className="w-12 h-12 bg-[#D4A03A] rounded-full flex items-center justify-center">
-                  <div className="w-8 h-8 bg-[#E0B84A] rounded-full"></div>
-                </div>
-              </div>
-            </div>
+            {/* Logo Image */}
+            <img
+              src={qayraIcon}
+              alt="QAYRA Logo"
+              className="w-20 h-20 rounded-full mb-4 shadow-lg object-contain bg-black"
+            />
 
             {/* Title */}
             <h1 className="text-white text-2xl font-serif font-bold text-center tracking-wide">
