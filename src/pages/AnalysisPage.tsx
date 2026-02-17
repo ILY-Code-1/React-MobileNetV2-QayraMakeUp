@@ -60,108 +60,110 @@ const AnalysisPage: React.FC = () => {
       {/* Analysis Table */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         {filteredAnalyses.length > 0 ? (
-          <div className="space-y-0">
-            {/* Table Header */}
-            <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
-              <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-600">
-                <div className="col-span-3">Nama</div>
-                <div className="col-span-5">Email</div>
-                <div className="col-span-3">Tanggal</div>
-                <div className="col-span-1 text-center">Aksi</div>
-              </div>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm text-left">
+              {/* Table Header */}
+              <thead className="bg-gray-100 border-b border-gray-200">
+                <tr className="text-xs font-semibold text-gray-600">
+                  <th className="px-4 py-3 w-1/4">Nama</th>
+                  <th className="px-4 py-3 w-2/5">Email</th>
+                  <th className="px-4 py-3 w-1/4">Tanggal</th>
+                  <th className="px-4 py-3 w-1/12 text-center">Aksi</th>
+                </tr>
+              </thead>
 
-            {/* Table Body */}
-            {filteredAnalyses.map((analysis) => (
-              <div
-                key={analysis.id}
-                onClick={() => {
-                  setDeleteId(analysis.id);
-                  Swal.fire({
-                    title: 'Konfirmasi Hapus',
-                    text: 'Apakah Anda yakin ingin menghapus data analisis ini? Tindakan ini tidak dapat dibatalkan.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Ya, Hapus',
-                    cancelButtonText: 'Batal',
-                    customClass: {
-                      popup: 'swal2-popup',
-                    },
-                  }).then((result) => {
-                    if (result.isConfirmed) {
-                      deleteAnalysis(analysis.id);
-                    }
-                  });
-                }}
-                className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <div className="grid grid-cols-12 gap-2 items-center">
-                  {/* Name */}
-                  <div className="col-span-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 bg-[#C68E2D] rounded-full flex items-center justify-center flex-shrink-0">
-                        <User className="w-3 h-3 text-white" />
+              {/* Table Body */}
+              <tbody>
+                {filteredAnalyses.map((analysis) => (
+                  <tr
+                    key={analysis.id}
+                    onClick={() => {
+                      setDeleteId(analysis.id);
+                      Swal.fire({
+                        title: 'Konfirmasi Hapus',
+                        text: 'Apakah Anda yakin ingin menghapus data analisis ini? Tindakan ini tidak dapat dibatalkan.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal',
+                        customClass: {
+                          popup: 'swal2-popup',
+                        },
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          deleteAnalysis(analysis.id);
+                        }
+                      });
+                    }}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    {/* Name */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-6 h-6 bg-[#C68E2D] rounded-full flex items-center justify-center flex-shrink-0">
+                          <User className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="font-medium text-gray-800 truncate">
+                          {analysis.name}
+                        </span>
                       </div>
-                      <span className="text-sm font-medium text-gray-800 truncate">
-                        {analysis.name}
-                      </span>
-                    </div>
-                  </div>
+                    </td>
 
-                  {/* Email */}
-                  <div className="col-span-5 flex items-center space-x-2">
-                    <Mail className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                    <span className="text-xs text-gray-600 truncate">
-                      {analysis.email}
-                    </span>
-                  </div>
+                    {/* Email */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center space-x-2">
+                        <Mail className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                        <span className="text-xs text-gray-600 truncate">
+                          {analysis.email}
+                        </span>
+                      </div>
+                    </td>
 
-                  {/* Date */}
-                  <div className="col-span-3">
-                    <span className="text-xs text-gray-600">
+                    {/* Date */}
+                    <td className="px-4 py-3 text-xs text-gray-600">
                       {new Date(analysis.eventDate).toLocaleDateString('id-ID', {
                         day: '2-digit',
                         month: 'short',
                         year: 'numeric',
                       })}
-                    </span>
-                  </div>
+                    </td>
 
-                  {/* Action */}
-                  <div className="col-span-1 flex justify-center">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteId(analysis.id);
-                        Swal.fire({
-                          title: 'Konfirmasi Hapus',
-                          text: 'Apakah Anda yakin ingin menghapus data analisis ini? Tindakan ini tidak dapat dibatalkan.',
-                          icon: 'warning',
-                          showCancelButton: true,
-                          confirmButtonColor: '#d33',
-                          cancelButtonColor: '#3085d6',
-                          confirmButtonText: 'Ya, Hapus',
-                          cancelButtonText: 'Batal',
-                          customClass: {
-                            popup: 'swal2-popup',
-                          },
-                        }).then((result) => {
-                          if (result.isConfirmed) {
-                            deleteAnalysis(analysis.id);
-                          }
-                        });
-                      }}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                      aria-label="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                    {/* Action */}
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteId(analysis.id);
+                          Swal.fire({
+                            title: 'Konfirmasi Hapus',
+                            text: 'Apakah Anda yakin ingin menghapus data analisis ini? Tindakan ini tidak dapat dibatalkan.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Ya, Hapus',
+                            cancelButtonText: 'Batal',
+                            customClass: {
+                              popup: 'swal2-popup',
+                            },
+                          }).then((result) => {
+                            if (result.isConfirmed) {
+                              deleteAnalysis(analysis.id);
+                            }
+                          });
+                        }}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                        aria-label="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : (
           <div className="px-4 py-12 text-center">

@@ -173,27 +173,27 @@ const UsersPage: React.FC = () => {
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         {filteredUsers.length > 0 ? (
           <div className="overflow-x-auto">
-            <div className="min-w-[600px]">
+            <table className="min-w-[600px] w-full text-sm text-left">
               {/* Table Header */}
-              <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
-                <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-600">
-                  <div className="col-span-3">Nama</div>
-                  <div className="col-span-4">Email</div>
-                  <div className="col-span-2">Tanggal</div>
-                  <div className="col-span-2">Status</div>
-                  <div className="col-span-1 text-center">Aksi</div>
-                </div>
-              </div>
+              <thead className="bg-gray-100 border-b border-gray-200">
+                <tr className="text-xs font-semibold text-gray-600">
+                  <th className="px-4 py-3 w-1/4">Nama</th>
+                  <th className="px-4 py-3 w-1/3">Email</th>
+                  <th className="px-4 py-3 w-1/6">Tanggal</th>
+                  <th className="px-4 py-3 w-1/6">Status</th>
+                  <th className="px-4 py-3 w-1/12 text-center">Aksi</th>
+                </tr>
+              </thead>
 
               {/* Table Body */}
-              {filteredUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="grid grid-cols-12 gap-2 items-center">
+              <tbody>
+                {filteredUsers.map((user) => (
+                  <tr
+                    key={user.id}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
                     {/* Name */}
-                    <div className="col-span-3">
+                    <td className="px-4 py-3">
                       <div className="flex items-center space-x-2">
                         <div className="w-6 h-6 bg-[#C68E2D] rounded-full flex items-center justify-center flex-shrink-0">
                           <User className="w-3 h-3 text-white" />
@@ -202,72 +202,76 @@ const UsersPage: React.FC = () => {
                           {user.name}
                         </span>
                       </div>
-                    </div>
+                    </td>
 
                     {/* Email */}
-                    <div className="col-span-4 flex items-center space-x-2">
-                      <Mail className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                      <span className="text-xs text-gray-600 truncate">
-                        {user.email}
-                      </span>
-                    </div>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center space-x-2">
+                        <Mail className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                        <span className="text-xs text-gray-600 truncate">
+                          {user.email}
+                        </span>
+                      </div>
+                    </td>
 
                     {/* Date */}
-                    <div className="col-span-2">
-                      <span className="text-xs text-gray-600">
-                        {new Date(user.eventDate).toLocaleDateString('id-ID', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </span>
-                    </div>
+                    <td className="px-4 py-3 text-xs text-gray-600">
+                      {new Date(user.eventDate).toLocaleDateString('id-ID', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </td>
 
                     {/* Status */}
-                    <div className="col-span-2">
+                    <td className="px-4 py-3">
                       <span
-                        className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusColor(user.status)}`}
+                        className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusColor(
+                          user.status
+                        )}`}
                       >
                         {getStatusLabel(user.status)}
                       </span>
-                    </div>
+                    </td>
 
                     {/* Action */}
-                    <div className="col-span-1 flex items-center justify-center space-x-1">
-                      {/* Edit Button */}
-                      <button
-                        onClick={() => handleEdit(user.id)}
-                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
-                        aria-label="Edit"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-
-                      {/* Delete Button */}
-                      <button
-                        onClick={() => handleDelete(user.id)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                        aria-label="Delete"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-center space-x-1">
+                        {/* Edit Button */}
+                        <button
+                          onClick={() => handleEdit(user.id)}
+                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
+                          aria-label="Edit"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+
+                        {/* Delete Button */}
+                        <button
+                          onClick={() => handleDelete(user.id)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                          aria-label="Delete"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : (
           <div className="px-4 py-12 text-center">

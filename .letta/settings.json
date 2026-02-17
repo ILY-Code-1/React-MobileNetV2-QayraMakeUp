@@ -7,7 +7,8 @@
       "Bash(mkdir src/components src/features src/hooks src/layouts src/pages src/services src/store src/utils)",
       "Bash(New-Item -ItemType Directory -Path \"src/components\", \"src/features\", \"src/hooks\", \"src/layouts\", \"src/pages\", \"src/services\", \"src/store\", \"src/utils\" -Force)",
       "Bash(npm list:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Glob(**)"
     ]
   }
 }

@@ -75,74 +75,94 @@ const RiwayatPage: React.FC = () => {
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         {historyData.length > 0 ? (
           <div className="overflow-x-auto">
-            {/* List Header */}
-            <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
-              <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-600">
-                <div className="col-span-2">Tanggal</div>
-                <div className="col-span-3">Nama</div>
-                <div className="col-span-3">Email</div>
-                <div className="col-span-2">Jenis</div>
-                <div className="col-span-2">Hasil</div>
-              </div>
-            </div>
+            <table className="w-full border-collapse">
+              {/* Table Header */}
+              <thead>
+                <tr className="bg-gray-100 border-b border-gray-200">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 whitespace-nowrap min-w-[100px]">
+                    Tanggal
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 whitespace-nowrap min-w-[150px]">
+                    Nama
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 whitespace-nowrap min-w-[200px]">
+                    Email
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 whitespace-nowrap min-w-[120px]">
+                    Jenis Analisis
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 whitespace-nowrap min-w-[100px]">
+                    Hasil
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 whitespace-nowrap min-w-[250px]">
+                    Catatan
+                  </th>
+                </tr>
+              </thead>
 
-            {/* List Body */}
-            {historyData.map((item) => (
-              <div
-                key={item.id}
-                className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
-              >
-                <div className="grid grid-cols-12 gap-2 items-center">
-                  {/* Date */}
-                  <div className="col-span-2">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                      <span className="text-xs text-gray-600">
-                        {item.date}
+              {/* Table Body */}
+              <tbody>
+                {historyData.map((item) => (
+                  <tr
+                    key={item.id}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                    {/* Date & Time */}
+                    <td className="px-4 py-3 align-top">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-600">
+                            {item.date}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {item.time}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Name */}
+                    <td className="px-4 py-3 align-top">
+                      <span className="text-sm font-medium text-gray-800">
+                        {item.name}
                       </span>
-                    </div>
-                  </div>
+                    </td>
 
-                  {/* Name */}
-                  <div className="col-span-3">
-                    <span className="text-sm font-medium text-gray-800 truncate">
-                      {item.name}
-                    </span>
-                  </div>
+                    {/* Email */}
+                    <td className="px-4 py-3 align-top">
+                      <span className="text-xs text-gray-600 break-words">
+                        {item.email}
+                      </span>
+                    </td>
 
-                  {/* Email */}
-                  <div className="col-span-3">
-                    <span className="text-xs text-gray-600 truncate">
-                      {item.email}
-                    </span>
-                  </div>
+                    {/* Type */}
+                    <td className="px-4 py-3 align-top">
+                      <span className="text-xs text-gray-600">
+                        {item.analysisType}
+                      </span>
+                    </td>
 
-                  {/* Type */}
-                  <div className="col-span-2">
-                    <span className="text-xs text-gray-600">
-                      {item.analysisType}
-                    </span>
-                  </div>
+                    {/* Result */}
+                    <td className="px-4 py-3 align-top">
+                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${getResultColor(item.result)}`}>
+                        {item.result}
+                      </span>
+                    </td>
 
-                  {/* Result */}
-                  <div className="col-span-2">
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${getResultColor(item.result)}`}>
-                      {item.result}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Notes */}
-                <div className="col-span-12 mt-2 pt-2 border-t border-gray-100">
-                  <div className="flex items-start space-x-2">
-                    <Clock className="w-3 h-3 text-gray-400 flex-shrink-0 mt-1" />
-                    <p className="text-xs text-gray-600 leading-relaxed">
-                      {item.notes}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
+                    {/* Notes */}
+                    <td className="px-4 py-3 align-top">
+                      <div className="flex items-start space-x-2">
+                        <Clock className="w-3 h-3 text-gray-400 flex-shrink-0 mt-1" />
+                        <p className="text-xs text-gray-600 leading-relaxed">
+                          {item.notes}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : (
           <div className="px-4 py-12 text-center">
