@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Users, BarChart3 } from 'lucide-react';
+import { User } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 const DashboardPage: React.FC = () => {
@@ -13,8 +13,8 @@ const DashboardPage: React.FC = () => {
           <User className="w-8 h-8 text-white" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Selamat Datang Dashboard</h2>
-          <p className="text-gray-600 text-sm">{user?.email || 'admin@qayra.com'}</p>
+          <h2 className="text-xl font-bold text-gray-800">Selamat Datang</h2>
+          <p className="text-gray-600 text-sm">{user?.email || 'user@qayra.com'}</p>
         </div>
       </div>
 
@@ -24,7 +24,7 @@ const DashboardPage: React.FC = () => {
         <div className="bg-secondary-pink rounded-xl p-4 shadow-md">
           <div className="flex flex-col items-center text-center">
             <div className="w-12 h-12 bg-[#C68E2D] rounded-full flex items-center justify-center mb-2">
-              <Users className="w-6 h-6 text-white" />
+              <User className="w-6 h-6 text-white" />
             </div>
             <h3 className="text-2xl font-bold text-gray-800">128</h3>
             <p className="text-sm text-gray-600 font-medium">Total Client</p>
@@ -35,7 +35,19 @@ const DashboardPage: React.FC = () => {
         <div className="bg-secondary-pink rounded-xl p-4 shadow-md">
           <div className="flex flex-col items-center text-center">
             <div className="w-12 h-12 bg-[#C68E2D] rounded-full flex items-center justify-center mb-2">
-              <BarChart3 className="w-6 h-6 text-white" />
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 012 2h2a2 2 0 012 2v8a2 2 0 012-2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
             </div>
             <h3 className="text-2xl font-bold text-gray-800">456</h3>
             <p className="text-sm text-gray-600 font-medium">Total Analysis</p>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Calendar, Mail, User, Edit2 } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
+import Swal from 'sweetalert2';
 
 interface UserData {
   id: string;
@@ -13,26 +15,7 @@ interface UserData {
 const UsersPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  const handleDeleteClick = (id: string) => {
-    setDeleteId(id);
-    setShowDeleteDialog(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (deleteId) {
-      setUsers(users.filter(user => user.id !== deleteId));
-      setShowDeleteDialog(false);
-      setDeleteId(null);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setShowDeleteDialog(false);
-    setDeleteId(null);
-  };
 
   const [users, setUsers] = useState<UserData[]>([
     {
@@ -81,6 +64,27 @@ const UsersPage: React.FC = () => {
     alert('Edit User button clicked! ID: ' + id + ' (Dummy functionality)');
   };
 
+  const handleDelete = (id: string) => {
+    setDeleteId(id);
+    Swal.fire({
+      title: 'Konfirmasi Hapus',
+      text: 'Apakah Anda yakin ingin menghapus user ini? Tindakan ini tidak dapat dibatalkan.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, Hapus',
+      cancelButtonText: 'Batal',
+      customClass: {
+        popup: 'swal2-popup',
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setUsers(users.filter(user => user.id !== id));
+      }
+    });
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -113,7 +117,7 @@ const UsersPage: React.FC = () => {
   );
 
   return (
-    <>
+    <div className="px-6 py-6 pb-24 space-y-6">
       {/* Page Title */}
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Kelola User</h1>
@@ -241,10 +245,7 @@ const UsersPage: React.FC = () => {
 
                       {/* Delete Button */}
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(user.id);
-                        }}
+                        onClick={() => handleDelete(user.id)}
                         className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
                         aria-label="Delete"
                       >
@@ -279,52 +280,7 @@ const UsersPage: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      {showDeleteDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-sm w-full p-6 shadow-2xl">
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                <svg
-                  className="w-8 h-8 text-red-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">
-                Konfirmasi Hapus
-              </h3>
-              <p className="text-gray-600 text-sm mb-6">
-                Apakah Anda yakin ingin menghapus user ini? Tindakan ini tidak dapat dibatalkan.
-              </p>
-              <div className="flex space-x-3">
-                <button
-                  onClick={handleCancelDelete}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-                >
-                  Ya, Hapus
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 };
 

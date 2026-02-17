@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, User, Mail, Calendar, ChevronRight, Download } from 'lucide-react';
+import { ArrowLeft,  Calendar,  Download } from 'lucide-react';
 import qayraIcon from '../assets/qayra-icon.png';
 import { useAnalysisStore } from '../store/analysisStore';
+import Swal from 'sweetalert2';
 
 const AnalysisDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,8 +17,16 @@ const AnalysisDetailPage: React.FC = () => {
   };
 
   const handleDownload = () => {
-    // Dummy download functionality
-    alert('Download button clicked! (Dummy functionality)');
+    Swal.fire({
+      title: 'Download Hasil Analisis',
+      text: 'Fitur download belum tersedia saat ini.',
+      icon: 'info',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#C68E2D',
+      customClass: {
+        popup: 'swal2-popup',
+      },
+    });
   };
 
   // Jika data tidak ditemukan, tampilkan pesan error

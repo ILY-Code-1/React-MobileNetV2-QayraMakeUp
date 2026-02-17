@@ -1,33 +1,44 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Home, BarChart3, Users } from 'lucide-react';
+import { LogOut, Home, BarChart3, Users, Camera, Clock } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import qayraIcon from '../assets/qayra-icon.png';
+import Swal from 'sweetalert2';
 
 const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const logout = useAuthStore((state) => state.logout);
-  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-
-  const handleLogoutClick = () => {
-    setShowLogoutDialog(true);
-  };
-
-  const handleConfirmLogout = () => {
-    setShowLogoutDialog(false);
-    logout();
-    navigate('/login');
-  };
-
-  const handleCancelLogout = () => {
-    setShowLogoutDialog(false);
-  };
+  const user = useAuthStore((state) => state.user);
+  const isAdmin = user?.isAdmin || false;
 
   // Determine which page is active for footer navigation
   const isDashboardActive = location.pathname === '/dashboard';
+  const isCameraActive = location.pathname === '/camera';
+  const isRiwayatActive = location.pathname === '/riwayat';
   const isAnalysisActive = location.pathname.startsWith('/analysis');
   const isUsersActive = location.pathname.startsWith('/users');
+
+  const handleLogoutClick = () => {
+    Swal.fire({
+      title: 'Konfirmasi Logout',
+      text: 'Apakah Anda yakin ingin keluar dari aplikasi?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, Keluar',
+      cancelButtonText: 'Batal',
+      customClass: {
+        popup: 'swal2-popup',
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        logout();
+        navigate('/login');
+      }
+    });
+  };
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
@@ -39,7 +50,7 @@ const AppLayout: React.FC = () => {
             alt="QAYRA"
             className="w-8 h-8 rounded-full object-contain"
           />
-          <span className="font-serif font-bold text-lg">QAYRA</span>
+          <span className="font-serif font-bold text-lg">QAYRA FACIAL ANLYZING</span>
         </div>
         <button
           onClick={handleLogoutClick}
@@ -55,92 +66,110 @@ const AppLayout: React.FC = () => {
         <Outlet />
       </div>
 
-      {/* Bottom Navigation Bar */}
+      {/* Bottom Navigation Bar with FAB-style Camera Button */}
       <div className="bg-[#C68E2D] shadow-lg shrink-0">
         <div className="flex justify-around items-center py-4">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className={`flex flex-col items-center space-y-1 ${
-              isDashboardActive ? 'text-black' : 'text-white/70'
-            }`}
-          >
-            <Home className="w-6 h-6" />
-            <span className="text-xs font-medium">Home</span>
-          </button>
+          {isAdmin ? (
+            <>
+              {/* Admin Menu */}
+              <button
+                onClick={() => navigate('/dashboard')}
+                className={`flex flex-col items-center space-y-1 ${
+                  isDashboardActive ? 'text-black' : 'text-white/70'
+                }`}
+              >
+                <Home className="w-6 h-6" />
+                <span className="text-xs font-medium">Beranda</span>
+              </button>
 
-          <button
-            onClick={() => navigate('/analysis')}
-            className={`flex flex-col items-center space-y-1 ${
-              isAnalysisActive ? 'text-black' : 'text-white/70'
-            }`}
-          >
-            <BarChart3 className="w-6 h-6" />
-            <span className="text-xs font-medium">Analysis</span>
-          </button>
+              <button
+                onClick={() => navigate('/analysis')}
+                className={`flex flex-col items-center space-y-1 ${
+                  isAnalysisActive ? 'text-black' : 'text-white/70'
+                }`}
+              >
+                <BarChart3 className="w-6 h-6" />
+                <span className="text-xs font-medium">Analisis</span>
+              </button>
 
+              <button
+                onClick={() => navigate('/users')}
+                className={`flex flex-col items-center space-y-1 ${
+                  isUsersActive ? 'text-black' : 'text-white/70'
+                }`}
+              >
+                <Users className="w-6 h-6" />
+                <span className="text-xs font-medium">Kelola User</span>
+              </button>
+            </>
+          ) : (
+            <>
+              {/* 1. Tombol Beranda */}
+        <button
+          onClick={() => navigate('/dashboard')}
+          className={`flex flex-col items-center space-y-1 w-1/3 ${
+            isDashboardActive ? 'text-black' : 'text-white/70'
+          }`}
+        >
+          <Home className="w-6 h-6" />
+          <span className="text-xs font-medium">Beranda</span>
+        </button>
+
+        {/* 2. FAB Camera Button - Diangkat ke atas dengan absolute */}
+        <div className="relative w-1/3 flex justify-center">
           <button
-            onClick={() => navigate('/users')}
-            className={`flex flex-col items-center space-y-1 ${
-              isUsersActive ? 'text-black' : 'text-white/70'
-            }`}
+            onClick={() => navigate('/camera')}
+            className="absolute -top-14 flex flex-col items-center" 
           >
-            <Users className="w-6 h-6" />
-            <span className="text-xs font-medium">Users</span>
+            {/* Lingkaran FAB Hitam */}
+            <div
+              className={`
+                w-20 h-20
+                bg-black
+                rounded-full
+                shadow-2xl
+                flex items-center justify-center
+                border-[6px] border-[#C68E2D] /* Border tebal warna emas agar terlihat "docked" */
+                transition-all duration-300
+                ${isCameraActive ? 'scale-110 ring-4 ring-black/10' : 'hover:scale-105'}
+              `}
+            >
+              <Camera
+                className={`w-10 h-10 text-[#C68E2D] transition-transform ${
+                  isCameraActive ? 'scale-110' : 'scale-100'
+                }`}
+              />
+            </div>
+            
+            {/* Label Kamera (Muncul di bawah lingkaran) */}
+            <span className={`mt-2 text-xs font-bold ${isCameraActive ? 'text-black' : 'text-white'}`}>
+              KAMERA
+            </span>
+
+            {/* Indikator Status Aktif (Floating di atas tombol) */}
+            {isCameraActive && (
+              <div className="absolute -top-8 bg-white px-3 py-1 rounded-full shadow-lg flex items-center space-x-2 border border-gray-100">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[10px] font-bold text-gray-800">AKTIF</span>
+              </div>
+            )}
           </button>
+        </div>
+
+        {/* 3. Tombol Riwayat */}
+        <button
+          onClick={() => navigate('/riwayat')}
+          className={`flex flex-col items-center space-y-1 w-1/3 ${
+            isRiwayatActive ? 'text-black' : 'text-white/70'
+          }`}
+        >
+          <Clock className="w-6 h-6" />
+          <span className="text-xs font-medium">Riwayat</span>
+        </button>
+            </>
+          )}
         </div>
       </div>
-
-      {/* Logout Confirmation Dialog */}
-      {showLogoutDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-sm w-full p-6 shadow-2xl">
-            <div className="text-center">
-              {/* Warning Icon */}
-              <div className="mx-auto flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                <svg
-                  className="w-8 h-8 text-red-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-              </div>
-
-              {/* Dialog Title */}
-              <h3 className="text-lg font-bold text-gray-800 mb-2">
-                Konfirmasi Logout
-              </h3>
-
-              {/* Dialog Message */}
-              <p className="text-gray-600 text-sm mb-6">
-                Apakah Anda yakin ingin keluar dari aplikasi?
-              </p>
-
-              {/* Dialog Buttons */}
-              <div className="flex space-x-3">
-                <button
-                  onClick={handleCancelLogout}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleConfirmLogout}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-                >
-                  Ya, Keluar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

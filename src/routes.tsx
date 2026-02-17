@@ -7,6 +7,8 @@ import AnalysisPage from './pages/AnalysisPage';
 import AnalysisDetailPage from './pages/AnalysisDetailPage';
 import UsersPage from './pages/UsersPage';
 import AddUserPage from './pages/AddUserPage';
+import CameraPage from './pages/CameraPage';
+import RiwayatPage from './pages/RiwayatPage';
 import MobileContainer from './layouts/MobileContainer';
 import AppLayout from './layouts/AppLayout';
 
@@ -46,7 +48,7 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Protected Routes with MobileContainer and AppLayout for main pages */}
+      {/* Protected Routes with MobileContainer and AppLayout */}
       <Route
         path="/"
         element={
@@ -57,14 +59,20 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       >
-        {/* Routes yang pakai header dan footer standar */}
-        <Route index element={<Navigate to="/dashboard" replace />} />
+        {/* Main dashboard route - default */}
+        <Route index element={<DashboardPage />} />
         <Route path="dashboard" element={<DashboardPage />} />
+
+        {/* Camera and History routes */}
+        <Route path="camera" element={<CameraPage />} />
+        <Route path="riwayat" element={<RiwayatPage />} />
+
+        {/* Analysis and Users routes */}
         <Route path="analysis" element={<AnalysisPage />} />
         <Route path="users" element={<UsersPage />} />
       </Route>
 
-      {/* Routes dengan header sendiri (tanpa AppLayout) */}
+      {/* Detail Routes (with own header) */}
       <Route
         path="/analysis/:id"
         element={

@@ -19,7 +19,12 @@ const LoginPage: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormData>();
+  } = useForm<LoginFormData>({
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
   const onSubmit = async (data: LoginFormData) => {
     const success = await login(data.email, data.password);
@@ -60,13 +65,13 @@ const LoginPage: React.FC = () => {
                 <input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="Masukkan email"
                   className="w-full pl-10 pr-4 py-3 bg-white rounded-md border-2 border-transparent focus:border-black focus:outline-none text-gray-800 placeholder-gray-400"
                   {...register('email', {
-                    required: 'Email is required',
+                    required: 'Email wajib diisi',
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Invalid email address',
+                      message: 'Email tidak valid',
                     },
                   })}
                 />
@@ -86,13 +91,13 @@ const LoginPage: React.FC = () => {
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
+                  placeholder="Masukkan password"
                   className="w-full pl-10 pr-12 py-3 bg-white rounded-md border-2 border-transparent focus:border-black focus:outline-none text-gray-800 placeholder-gray-400"
                   {...register('password', {
-                    required: 'Password is required',
+                    required: 'Password wajib diisi',
                     minLength: {
                       value: 6,
-                      message: 'Password must be at least 6 characters',
+                      message: 'Password minimal 6 karakter',
                     },
                   })}
                 />
@@ -101,7 +106,7 @@ const LoginPage: React.FC = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                 </button>
               </div>
               {errors.password && (
@@ -117,6 +122,17 @@ const LoginPage: React.FC = () => {
               LOGIN
             </button>
           </form>
+
+          {/* Demo Accounts Info */}
+          <div className="mt-6 p-4 bg-black bg-opacity-20 rounded-lg">
+            <p className="text-white text-xs text-center font-medium mb-2">
+              DEMO ACCOUNTS:
+            </p>
+            <div className="space-y-1 text-xs text-white/80 text-center">
+              <p><span className="text-yellow-300">Admin:</span> admin@qayra.com / admin123</p>
+              <p><span className="text-green-300">User:</span> user@qayra.com / user123</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
