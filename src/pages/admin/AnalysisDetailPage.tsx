@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft,  Calendar,  Download } from 'lucide-react';
-import qayraIcon from '../assets/qayra-icon.png';
-import { useAnalysisStore } from '../store/analysisStore';
+import qayraIcon from '../../assets/qayra-icon.png';
+import { useAnalysisStore } from '../../store/analysisStore';
 import Swal from 'sweetalert2';
 
 const AnalysisDetailPage: React.FC = () => {
@@ -130,7 +130,7 @@ const AnalysisDetailPage: React.FC = () => {
         {/* Container Hasil Analisis - Kosong */}
         <div className="px-6 py-6">
           <div className="bg-white rounded-xl p-6 shadow-md">
-            <div className="flex items-center justify-center min-h-[200px]">
+            <div className="flex items-center justify-center min-h-[200]">
               <div className="text-center">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg

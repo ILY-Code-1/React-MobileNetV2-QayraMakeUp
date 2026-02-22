@@ -1,34 +1,62 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { ArrowLeft, User, Mail, Calendar } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calendar, Lock, Shield } from 'lucide-react';
+import { useUserStore } from '../../store/userStore';
 
 interface UserData {
   name: string;
   email: string;
+  password: string;
+  role: 'admin' | 'user';
   eventDate: string;
 }
 
 const AddUserPage: React.FC = () => {
   const navigate = useNavigate();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createUser } = useUserStore();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<UserData>();
+    getValues,
+  } = useForm<UserData>({
+    defaultValues: {
+      role: 'user',
+    },
+  });
 
   const onSubmit = (data: UserData) => {
     setShowConfirmDialog(true);
   };
 
-  const handleConfirmSubmit = () => {
+  const handleConfirmSubmit = async () => {
     setShowConfirmDialog(false);
-    reset();
-    // Navigate back to users page
-    navigate('/users');
+    setIsSubmitting(true);
+
+    try {
+      const formData = getValues();
+      const success = await createUser({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+        eventDate: new Date(formData.eventDate).toISOString(),
+      });
+
+      if (success) {
+        reset();
+        navigate('/users');
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancelSubmit = () => {
@@ -117,6 +145,66 @@ const AddUserPage: React.FC = () => {
               )}
             </div>
 
+            {/* Password Input */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="Masukkan password"
+                  className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:border-[#C68E2D] focus:outline-none text-gray-800 placeholder-gray-400"
+                  {...register('password', {
+                    required: 'Password wajib diisi',
+                    minLength: {
+                      value: 6,
+                      message: 'Password minimal 6 karakter',
+                    },
+                  })}
+                />
+              </div>
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+              )}
+            </div>
+
+            {/* Role Input */}
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+                Role
+              </label>
+              <div className="relative">
+                <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <select
+                  id="role"
+                  className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:border-[#C68E2D] focus:outline-none text-gray-800 appearance-none cursor-pointer"
+                  {...register('role')}
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <svg
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+              {errors.role && (
+                <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>
+              )}
+            </div>
+
             {/* Event Date Input */}
             <div>
               <label htmlFor="eventDate" className="block text-sm font-medium text-gray-700 mb-2">
@@ -141,22 +229,50 @@ const AddUserPage: React.FC = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-[#C68E2D] hover:bg-[#B77E29] text-white font-semibold py-4 px-4 rounded-lg shadow-md transition-colors flex items-center justify-center space-x-2"
+              disabled={isSubmitting}
+              className="w-full bg-[#C68E2D] hover:bg-[#B77E29] text-white font-semibold py-4 px-4 rounded-lg shadow-md transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              <span>Simpan User</span>
+              {isSubmitting ? (
+                <>
+                  <svg
+                    className="animate-spin w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span>Menyimpan...</span>
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  <span>Simpan User</span>
+                </>
+              )}
             </button>
           </form>
         </div>

@@ -1,8 +1,8 @@
 import React from 'react';
-import { User, BarChart3, Upload, Bell, LogOut, Settings } from 'lucide-react';
+import { User, BarChart3, Upload, Bell, LogOut, Settings, Users } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
-import qayraIcon from '../assets/qayra-icon.png';
+import qayraIcon from '../../assets/qayra-icon.png';
 import Swal from 'sweetalert2';
 
 const AdminDashboardPage: React.FC = () => {

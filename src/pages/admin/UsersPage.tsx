@@ -1,71 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Calendar, Mail, User, Edit2 } from 'lucide-react';
+import { Search, Plus, Calendar, Mail, User, Edit2, Shield } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { useUserStore, type UserData } from '../../store/userStore';
 import Swal from 'sweetalert2';
-
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  eventDate: string;
-  status: 'active' | 'inactive' | 'pending';
-}
 
 const UsersPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const [users, setUsers] = useState<UserData[]>([
-    {
-      id: '1',
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@example.com',
-      eventDate: '2024-02-15',
-      status: 'active',
-    },
-    {
-      id: '2',
-      name: 'Emily Davis',
-      email: 'emily.davis@example.com',
-      eventDate: '2024-02-14',
-      status: 'active',
-    },
-    {
-      id: '3',
-      name: 'Maria Garcia',
-      email: 'maria.garcia@example.com',
-      eventDate: '2024-02-13',
-      status: 'pending',
-    },
-    {
-      id: '4',
-      name: 'John Smith',
-      email: 'john.smith@example.com',
-      eventDate: '2024-02-12',
-      status: 'inactive',
-    },
-    {
-      id: '5',
-      name: 'Lisa Anderson',
-      email: 'lisa.anderson@example.com',
-      eventDate: '2024-02-11',
-      status: 'active',
-    },
-  ]);
+  const { users, loading, getAllUsers, deleteUser } = useUserStore();
+  const { user: currentUser } = useAuthStore();
+
+  useEffect(() => {
+    getAllUsers();
+  }, [getAllUsers]);
 
   const handleAddUser = () => {
     navigate('/users/add');
   };
 
   const handleEdit = (id: string) => {
-    // Dummy button - placeholder for edit user functionality
-    alert('Edit User button clicked! ID: ' + id + ' (Dummy functionality)');
+    navigate(`/users/edit/${id}`);
   };
 
   const handleDelete = (id: string) => {
-    setDeleteId(id);
     Swal.fire({
       title: 'Konfirmasi Hapus',
       text: 'Apakah Anda yakin ingin menghapus user ini? Tindakan ini tidak dapat dibatalkan.',
@@ -78,9 +37,17 @@ const UsersPage: React.FC = () => {
       customClass: {
         popup: 'swal2-popup',
       },
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        setUsers(users.filter(user => user.id !== id));
+        const success = await deleteUser(id);
+        if (success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: 'User berhasil dihapus',
+            confirmButtonColor: '#C68E2D',
+          });
+        }
       }
     });
   };
@@ -138,24 +105,30 @@ const UsersPage: React.FC = () => {
 
       {/* Stats Summary */}
       <div className="bg-secondary-pink rounded-xl p-4 shadow-md">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <div className="text-center">
+            <div className="text-2xl font-bold text-[#C68E2D]">
+              {users.length}
+            </div>
+            <p className="text-xs text-gray-600 font-medium">Total</p>
+          </div>
+          <div className="text-center border-l border-gray-300">
+            <div className="text-2xl font-bold text-purple-600">
+              {users.filter(u => u.role === 'admin').length}
+            </div>
+            <p className="text-xs text-gray-600 font-medium">Admin</p>
+          </div>
+          <div className="text-center border-l border-gray-300">
             <div className="text-2xl font-bold text-green-600">
               {users.filter(u => u.status === 'active').length}
             </div>
             <p className="text-xs text-gray-600 font-medium">Aktif</p>
           </div>
-          <div className="text-center border-l border-r border-gray-300">
+          <div className="text-center border-l border-gray-300">
             <div className="text-2xl font-bold text-yellow-600">
               {users.filter(u => u.status === 'pending').length}
             </div>
             <p className="text-xs text-gray-600 font-medium">Pending</p>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">
-              {users.filter(u => u.status === 'inactive').length}
-            </div>
-            <p className="text-xs text-gray-600 font-medium">Tidak Aktif</p>
           </div>
         </div>
       </div>
@@ -179,6 +152,7 @@ const UsersPage: React.FC = () => {
                 <tr className="text-xs font-semibold text-gray-600">
                   <th className="px-4 py-3 w-1/4">Nama</th>
                   <th className="px-4 py-3 w-1/3">Email</th>
+                  <th className="px-4 py-3 w-1/8">Role</th>
                   <th className="px-4 py-3 w-1/6">Tanggal</th>
                   <th className="px-4 py-3 w-1/6">Status</th>
                   <th className="px-4 py-3 w-1/12 text-center">Aksi</th>
@@ -210,6 +184,18 @@ const UsersPage: React.FC = () => {
                         <Mail className="w-3 h-3 text-gray-400 flex-shrink-0" />
                         <span className="text-xs text-gray-600 truncate">
                           {user.email}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Role */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center space-x-1">
+                        {user.role === 'admin' && <Shield className="w-3 h-3 text-purple-500 flex-shrink-0" />}
+                        <span
+                          className={`text-xs font-medium ${user.role === 'admin' ? 'text-purple-600' : 'text-blue-600'}`}
+                        >
+                          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                         </span>
                       </div>
                     </td>
@@ -249,8 +235,13 @@ const UsersPage: React.FC = () => {
                         {/* Delete Button */}
                         <button
                           onClick={() => handleDelete(user.id)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                          aria-label="Delete"
+                          disabled={user.id === currentUser?.uid}
+                          className={`p-2 rounded-full transition-colors ${
+                            user.id === currentUser?.uid
+                              ? 'text-gray-300 cursor-not-allowed'
+                              : 'text-red-500 hover:bg-red-50'
+                          }`}
+                          aria-label={user.id === currentUser?.uid ? 'Cannot delete yourself' : 'Delete'}
                         >
                           <svg
                             className="w-4 h-4"

@@ -7,6 +7,7 @@ import AnalysisPage from './pages/admin/AnalysisPage';
 import AnalysisDetailPage from './pages/admin/AnalysisDetailPage';
 import UsersPage from './pages/admin/UsersPage';
 import AddUserPage from './pages/admin/AddUserPage';
+import EditUserPage from './pages/admin/EditUserPage';
 import CameraPage from './pages/users/CameraPage';
 import RiwayatPage from './pages/users/RiwayatPage';
 import MobileContainer from './layouts/MobileContainer';
@@ -90,6 +91,17 @@ export const AppRoutes: React.FC = () => {
           <ProtectedRoute>
             <MobileContainer>
               <AddUserPage />
+            </MobileContainer>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/users/edit/:id"
+        element={
+          <ProtectedRoute>
+            <MobileContainer>
+              <EditUserPage />
             </MobileContainer>
           </ProtectedRoute>
         }
