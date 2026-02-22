@@ -26,5 +26,11 @@ dist-ssr
 # Firebase & Env
 .env
 .env.local
+firebase-debug.log*
+firebase-debug.*.log
 
-functions
+# Functions - ignore sensitive files only
+functions/node_modules/
+functions/*.log
+functions/service-account-key.json
+functions/.env

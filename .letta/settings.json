@@ -9,7 +9,9 @@
       "Edit(src/pages/admin/**)",
       "Write(**)",
       "Edit(src/store/**)",
-      "Edit(src/**)"
+      "Edit(src/**)",
+      "Edit(functions/**)",
+      "Edit(**)"
     ]
   }
 }
