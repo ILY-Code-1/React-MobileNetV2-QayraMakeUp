@@ -58,18 +58,7 @@ const LoginPage: React.FC = () => {
         text: 'Selamat datang kembali!',
         confirmButtonColor: '#C68E2D',
       }).then(() => {
-        // Redirect sesuai role user
-        const userStr = localStorage.getItem('auth_user');
-        if (userStr) {
-          const user = JSON.parse(userStr);
-          if (user.role === 'admin') {
-            navigate('/dashboard');
-          } else {
-            navigate('/analysis');
-          }
-        } else {
-          navigate('/dashboard');
-        }
+        navigate('/dashboard');
       });
     } catch (error: any) {
       Swal.fire({

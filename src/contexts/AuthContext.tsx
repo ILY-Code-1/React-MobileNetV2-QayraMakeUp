@@ -1,23 +1,24 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 import {
-  loginUser as apiLogin,
-  logoutUser as apiLogout,
-  registerUser as apiRegister,
-  getCurrentUser,
-  isAuthenticated as checkIsAuthenticated,
-  isAdmin as checkIsAdmin,
-  User,
-} from '../services/api';
+  loginWithFirebase,
+  logoutFromFirebase,
+  createUserAsAdmin,
+  USERS_COLLECTION,
+  type UserData,
+} from '../services/firestoreService';
 
 interface AuthContextType {
-  user: User | null;
+  user: UserData | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  refreshUser: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,54 +36,57 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load user dari localStorage saat mount
   useEffect(() => {
-    const loadUser = () => {
-      try {
-        const currentUser = getCurrentUser();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Error loading user:', error);
-      } finally {
-        setIsLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const userDoc = await getDoc(doc(db, USERS_COLLECTION, firebaseUser.uid));
+          if (userDoc.exists()) {
+            setUser({ id: userDoc.id, ...userDoc.data() } as UserData);
+          } else {
+            setUser(null);
+          }
+        } catch {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
       }
-    };
+      setIsLoading(false);
+    });
 
-    loadUser();
+    return unsubscribe;
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await apiLogin(email, password);
-
-    if (response.status === 'success' && response.data?.user) {
-      setUser(response.data.user);
-    }
+    const userData = await loginWithFirebase(email, password);
+    setUser(userData);
   };
 
   const register = async (name: string, email: string, password: string) => {
-    const response = await apiRegister({
+    const userData = await createUserAsAdmin({
       name,
       email,
       password,
       role: 'user',
     });
-
-    if (response.status === 'success' && response.data?.user) {
-      setUser(response.data.user);
-    }
+    setUser(userData);
   };
 
   const logout = async () => {
-    await apiLogout();
+    await logoutFromFirebase();
     setUser(null);
   };
 
-  const refreshUser = () => {
-    const currentUser = getCurrentUser();
-    setUser(currentUser);
+  const refreshUser = async () => {
+    if (!auth.currentUser) return;
+    const userDoc = await getDoc(doc(db, USERS_COLLECTION, auth.currentUser.uid));
+    if (userDoc.exists()) {
+      setUser({ id: userDoc.id, ...userDoc.data() } as UserData);
+    }
   };
 
   const value: AuthContextType = {

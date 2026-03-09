@@ -31,6 +31,12 @@ firebase-debug.*.log
 
 # Functions - ignore sensitive files only
 functions/node_modules/
+functions/lib/
 functions/*.log
 functions/service-account-key.json
 functions/.env
+
+node_modules/
+*.local
+service-account-key.json
+.env

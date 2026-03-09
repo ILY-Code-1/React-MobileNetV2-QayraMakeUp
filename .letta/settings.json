@@ -11,7 +11,8 @@
       "Edit(src/store/**)",
       "Edit(src/**)",
       "Edit(functions/**)",
-      "Edit(**)"
+      "Edit(**)",
+      "Bash(npm run build:*)"
     ]
   }
 }
