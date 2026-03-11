@@ -72,45 +72,66 @@ const AnalysisDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
+    <div className="h-full flex flex-col bg-white font-sans">
       {/* Header with Back Button */}
-      <div className="bg-black text-white px-6 py-4 flex items-center shadow-lg shrink-0">
-        <button type="button" onClick={handleBack} className="flex items-center space-x-2 text-white hover:text-gray-300 transition-colors">
-          <ArrowLeft className="w-6 h-6" />
-          <span className="font-medium">Kembali</span>
+      <div className="bg-black text-white px-6 py-5 flex items-center shadow-2xl shrink-0 z-10">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="flex items-center space-x-3 text-white hover:text-[#C68E2D] transition-all active:scale-95 group"
+        >
+          <div className="p-2 bg-white/10 rounded-xl group-hover:bg-[#C68E2D]/20 transition-colors">
+            <ArrowLeft className="w-6 h-6" />
+          </div>
+          <span className="font-black uppercase tracking-[0.2em] text-sm">Kembali</span>
         </button>
       </div>
 
       {/* Main Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto px-6 py-8 space-y-8">
         {/* Profile Header */}
-        <div className="bg-white px-6 py-8 shadow-md">
-          <div className="flex flex-col items-center">
-            <img src={qayraIcon} alt="QAYRA" className="w-24 h-24 rounded-full object-contain mb-4" />
-            <h1 className="text-2xl font-bold text-gray-800">{analysisData.name}</h1>
-            <p className="text-gray-600 text-sm mt-1">{analysisData.email}</p>
-            <div className="mt-3">
-              <span className="bg-[#C68E2D] text-white text-xs font-medium px-3 py-1 rounded-full">
-                {analysisData.result ?? 'Completed'}
-              </span>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <div className="w-32 h-32 bg-white rounded-full p-1 border-4 border-[#C68E2D] shadow-2xl overflow-hidden">
+              <img src={qayraIcon} alt="QAYRA" className="w-full h-full object-contain" />
             </div>
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest border-2 border-[#C68E2D]">
+              {analysisData.result ?? 'Completed'}
+            </div>
+          </div>
+          <div className="text-center space-y-1">
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight uppercase">{analysisData.name}</h1>
+            <p className="text-gray-500 font-bold text-sm tracking-wide">{analysisData.email}</p>
           </div>
         </div>
 
-        {/* Informasi Section */}
-        <div className="px-6 py-6 space-y-4">
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Informasi</h2>
-
-          {/* Event Information Card */}
-          <div className="bg-white rounded-xl p-6 shadow-md">
-            <div className="flex items-center mb-4">
-              <Calendar className="w-5 h-5 mr-2 text-[#C68E2D]" />
-              <h3 className="text-base font-bold text-gray-800">Tanggal Acara</h3>
+        {/* Info Grid */}
+        <div className="grid grid-cols-1 gap-6">
+          {/* Tanggal Acara Card */}
+          <div className="bg-[#FDE7E7] rounded-[32px] p-8 border border-[#FAD2D2] shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="p-3 bg-white rounded-2xl shadow-sm text-[#C68E2D]">
+                <Calendar className="w-6 h-6" />
+              </div>
+              <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight">Tanggal Acara</h2>
             </div>
-            <div className="text-base font-semibold text-gray-800">
+            <p className="text-2xl font-black text-gray-800 ml-2">
               {analysisData.eventDate
                 ? new Date(analysisData.eventDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
                 : '-'}
+            </p>
+          </div>
+
+          {/* Hasil Analisis Detail Card */}
+          <div className="bg-[#FDE7E7] rounded-[32px] p-8 border border-[#FAD2D2] shadow-sm relative overflow-hidden group hover:shadow-md transition-all min-h-[200px] flex flex-col justify-center">
+            <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em] mb-6 text-center">Hasil Analisis</h2>
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/40">
+              <p className="text-xl font-black text-gray-900 leading-relaxed uppercase tracking-wide">
+                {analysisData.result ?? 'Analisis Selesai'}
+              </p>
+              <p className="text-[10px] font-bold text-gray-400 mt-4 uppercase tracking-[0.2em]">
+                Dianalisis pada {new Date(analysisData.createdAt || '').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </p>
             </div>
           </div>
 
@@ -118,28 +139,11 @@ const AnalysisDetailPage: React.FC = () => {
           <button
             type="button"
             onClick={handleDownload}
-            className="w-full bg-[#C68E2D] hover:bg-[#B77E29] text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors flex items-center justify-center space-x-2"
+            className="w-full bg-black text-white font-black text-lg py-5 rounded-2xl border-2 border-white/10 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-black/10 active:scale-[0.98] transition-all uppercase tracking-[0.3em] shadow-xl flex items-center justify-center space-x-3"
           >
-            <Download className="w-5 h-5" />
-            <span>Download Hasil Analisis</span>
+            <Download className="w-6 h-6" />
+            <span>Download Hasil</span>
           </button>
-        </div>
-
-        {/* Hasil Analisis */}
-        <div className="px-6 py-6">
-          <div className="bg-white rounded-xl p-6 shadow-md">
-            <div className="flex items-center justify-center min-h-50">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Hasil Analisis</h3>
-                <p className="text-gray-600 text-sm">Hasil analisis akan tampil di sini</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

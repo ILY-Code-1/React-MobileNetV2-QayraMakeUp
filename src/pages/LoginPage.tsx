@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useAuth } from '../contexts/AuthContext';
+import { Eye, EyeOff } from 'lucide-react';
+import qayraIcon from '../assets/qayra-icon.png';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,6 +15,7 @@ const LoginPage: React.FC = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -24,7 +27,6 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validasi form
     if (!formData.email || !formData.password) {
       Swal.fire({
         icon: 'warning',
@@ -35,7 +37,6 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    // Validasi email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       Swal.fire({
@@ -60,6 +61,7 @@ const LoginPage: React.FC = () => {
       }).then(() => {
         navigate('/dashboard');
       });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Swal.fire({
         icon: 'error',
@@ -73,107 +75,84 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
-      <div className="max-w-md w-full mx-4">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-6">
-            <h1 className="text-3xl font-bold text-white text-center">QayraMakeUp</h1>
-            <p className="text-amber-100 text-center mt-2">Login to your account</p>
-          </div>
-
-          {/* Form */}
-          <div className="px-8 py-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Field */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
-                  disabled={loading}
-                  required
-                />
-              </div>
-
-              {/* Password Field */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Enter your password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
-                  disabled={loading}
-                  required
-                />
-              </div>
-
-              {/* Login Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold py-3 px-4 rounded-lg hover:from-amber-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <div className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Signing in...
-                  </div>
-                ) : (
-                  'Sign In'
-                )}
-              </button>
-
-              {/* Footer */}
-              <div className="text-center">
-                <p className="text-sm text-gray-600">
-                  Don't have an account?{' '}
-                  <a
-                    href="/register"
-                    className="font-medium text-amber-600 hover:text-amber-500 transition-colors duration-200"
-                  >
-                    Sign up
-                  </a>
-                </p>
-              </div>
-            </form>
+    <div className="min-h-screen flex items-center justify-center bg-[#FDE7E7] font-sans">
+      <div className="max-w-md w-full mx-6 relative">
+        {/* Logo Bulat - Floating Above */}
+        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 z-20">
+          <div className="w-32 h-32 bg-black rounded-full flex items-center justify-center border-4 border-[#C68E2D] shadow-xl overflow-hidden">
+            <img src={qayraIcon} alt="Qayra Logo" className="w-24 h-24 object-contain" />
           </div>
         </div>
 
-        {/* Info */}
-        <p className="text-center text-xs text-gray-500 mt-4">
-          Secure authentication with encrypted passwords
-        </p>
+        <div className="bg-[#C68E2D] rounded-[40px] shadow-2xl pt-24 pb-12 px-8 relative overflow-hidden">
+          {/* Black Bar at Top */}
+          <div className="absolute top-0 left-0 w-full h-20 bg-black z-10"></div>
+
+          {/* Title Section */}
+          <div className="relative z-20 text-center mb-8 mt-4">
+            <h1 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-wider leading-tight">
+              QAYRA FACIAL ANALYZING
+            </h1>
+            <p className="text-white text-[10px] md:text-xs font-medium tracking-[0.2em] mt-1 opacity-90 uppercase">
+              BY QAYRA MAKE UP
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4 relative z-20">
+            {/* Email Field */}
+            <div className="relative group">
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Email"
+                className="w-full bg-[#FDE7E7] text-gray-800 placeholder-gray-500 px-5 py-4 rounded-md border-none focus:ring-2 focus:ring-black transition-all duration-300"
+                disabled={loading}
+                required
+              />
+            </div>
+
+            {/* Password Field */}
+            <div className="relative group">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Password"
+                className="w-full bg-[#FDE7E7] text-gray-800 placeholder-gray-500 px-5 py-4 rounded-md border-none focus:ring-2 focus:ring-black transition-all duration-300 pr-12"
+                disabled={loading}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition-colors"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+
+            {/* Login Button */}
+            <div className="pt-6">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-black text-white font-bold text-lg py-4 rounded-xl border-2 border-white hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-black/20 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest shadow-lg"
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : (
+                  'LOGIN'
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

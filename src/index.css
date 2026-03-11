@@ -1,9 +1,57 @@
 @import "tailwindcss";
-/* @tailwind components; */
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar for modern look */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C68E2D;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B77E29;
+}
+
+/* Global SweetAlert2 Theme Overrides */
+.swal2-popup {
+  border-radius: 32px !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+.swal2-title {
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: -0.025em !important;
+}
+
+.swal2-confirm {
+  border-radius: 16px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  padding: 1rem 2rem !important;
+}
+
+.swal2-cancel {
+  border-radius: 16px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  padding: 1rem 2rem !important;
 }

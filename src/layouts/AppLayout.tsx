@@ -10,7 +10,7 @@ const AppLayout: React.FC = () => {
   const location = useLocation();
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
-  const isAdmin = user?.isAdmin || false;
+  const isAdmin = user?.role === 'admin';
 
   // Determine which page is active for footer navigation
   const isDashboardActive = location.pathname === '/dashboard';
@@ -41,135 +41,130 @@ const AppLayout: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
+    <div className="h-full flex flex-col bg-white font-sans">
       {/* Header */}
-      <div className="bg-black text-white px-6 py-4 flex items-center justify-between shadow-lg shrink-0">
-        <div className="flex items-center space-x-3">
-          <img
-            src={qayraIcon}
-            alt="QAYRA"
-            className="w-8 h-8 rounded-full object-contain"
-          />
-          <span className="font-serif font-bold text-lg">QAYRA FACIAL ANLYZING</span>
+      <header className="bg-black text-white px-6 py-5 flex items-center justify-between shadow-2xl shrink-0 z-50">
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <img
+              src={qayraIcon}
+              alt="QAYRA"
+              className="w-12 h-12 rounded-full object-contain border-2 border-[#C68E2D] p-0.5 bg-white"
+            />
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-black rounded-full" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-serif font-black text-sm tracking-[0.2em] leading-none uppercase">QAYRA FACIAL ANALYZING</span>
+            <span className="text-[9px] font-bold tracking-[0.3em] text-[#C68E2D] mt-1 uppercase opacity-90">BY QAYRA MAKE UP</span>
+          </div>
         </div>
         <button
           onClick={handleLogoutClick}
-          className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+          className="p-3 hover:bg-white/10 rounded-2xl transition-all active:scale-90 group"
           aria-label="Logout"
         >
-          <LogOut className="w-6 h-6" />
+          <LogOut className="w-6 h-6 group-hover:text-[#C68E2D] transition-colors" />
         </button>
-      </div>
+      </header>
 
       {/* Main Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto bg-white">
         <Outlet />
-      </div>
+      </main>
 
-      {/* Bottom Navigation Bar with FAB-style Camera Button */}
-      <div className="bg-[#C68E2D] shadow-lg shrink-0">
-        <div className="flex justify-around items-center py-4">
+      {/* Bottom Navigation Bar */}
+      <nav className="bg-[#C68E2D] px-4 py-3 shrink-0 relative z-50 shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.1)]">
+        <div className="flex justify-around items-end max-w-lg mx-auto relative">
           {isAdmin ? (
             <>
-              {/* Admin Menu */}
+              {/* Beranda */}
               <button
                 onClick={() => navigate('/dashboard')}
-                className={`flex flex-col items-center space-y-1 ${
-                  isDashboardActive ? 'text-black' : 'text-white/70'
+                className={`flex flex-col items-center space-y-1 transition-all duration-300 w-20 ${
+                  isDashboardActive ? 'text-black' : 'text-white/80'
                 }`}
               >
-                <Home className="w-6 h-6" />
-                <span className="text-xs font-medium">Beranda</span>
+                <div className={`p-2 rounded-xl ${isDashboardActive ? 'bg-white shadow-lg' : ''}`}>
+                  <Home className="w-6 h-6" />
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-widest">Beranda</span>
               </button>
 
+              {/* Analisis */}
               <button
                 onClick={() => navigate('/analysis')}
-                className={`flex flex-col items-center space-y-1 ${
-                  isAnalysisActive ? 'text-black' : 'text-white/70'
+                className={`flex flex-col items-center space-y-1 transition-all duration-300 w-20 ${
+                  isAnalysisActive ? 'text-black' : 'text-white/80'
                 }`}
               >
-                <BarChart3 className="w-6 h-6" />
-                <span className="text-xs font-medium">Analisis</span>
+                <div className={`p-2 rounded-xl ${isAnalysisActive ? 'bg-white shadow-lg' : ''}`}>
+                  <BarChart3 className="w-6 h-6" />
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-widest">Analisis</span>
               </button>
 
+              {/* Users */}
               <button
                 onClick={() => navigate('/users')}
-                className={`flex flex-col items-center space-y-1 ${
-                  isUsersActive ? 'text-black' : 'text-white/70'
+                className={`flex flex-col items-center space-y-1 transition-all duration-300 w-20 ${
+                  isUsersActive ? 'text-black' : 'text-white/80'
                 }`}
               >
-                <Users className="w-6 h-6" />
-                <span className="text-xs font-medium">Kelola User</span>
+                <div className={`p-2 rounded-xl ${isUsersActive ? 'bg-white shadow-lg' : ''}`}>
+                  <Users className="w-6 h-6" />
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-widest">User</span>
               </button>
             </>
-          ) : (
+            ) : (
             <>
-              {/* 1. Tombol Beranda */}
-        <button
-          onClick={() => navigate('/dashboard')}
-          className={`flex flex-col items-center space-y-1 w-1/3 ${
-            isDashboardActive ? 'text-black' : 'text-white/70'
-          }`}
-        >
-          <Home className="w-6 h-6" />
-          <span className="text-xs font-medium">Beranda</span>
-        </button>
-
-        {/* 2. FAB Camera Button - Diangkat ke atas dengan absolute */}
-        <div className="relative w-1/3 flex justify-center">
-          <button
-            onClick={() => navigate('/camera')}
-            className="absolute -top-14 flex flex-col items-center" 
-          >
-            {/* Lingkaran FAB Hitam */}
-            <div
-              className={`
-                w-20 h-20
-                bg-black
-                rounded-full
-                shadow-2xl
-                flex items-center justify-center
-                border-[6px] border-[#C68E2D] /* Border tebal warna emas agar terlihat "docked" */
-                transition-all duration-300
-                ${isCameraActive ? 'scale-110 ring-4 ring-black/10' : 'hover:scale-105'}
-              `}
-            >
-              <Camera
-                className={`w-10 h-10 text-[#C68E2D] transition-transform ${
-                  isCameraActive ? 'scale-110' : 'scale-100'
+              {/* USER VERSION */}
+              {/* 1. Beranda */}
+              <button
+                onClick={() => navigate('/dashboard')}
+                className={`flex flex-col items-center space-y-1.5 pb-1 transition-all duration-300 w-20 ${
+                  isDashboardActive ? 'text-black transform -translate-y-1' : 'text-white/80'
                 }`}
-              />
-            </div>
-            
-            {/* Label Kamera (Muncul di bawah lingkaran) */}
-            <span className={`mt-2 text-xs font-bold ${isCameraActive ? 'text-black' : 'text-white'}`}>
-              KAMERA
-            </span>
+              >
+                <div className={`p-2 rounded-xl transition-all ${isDashboardActive ? 'bg-white shadow-lg' : ''}`}>
+                  <Home className="w-6 h-6" />
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-widest">Beranda</span>
+              </button>
 
-            {/* Indikator Status Aktif (Floating di atas tombol) */}
-            {isCameraActive && (
-              <div className="absolute -top-8 bg-white px-3 py-1 rounded-full shadow-lg flex items-center space-x-2 border border-gray-100">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[10px] font-bold text-gray-800">AKTIF</span>
+              {/* 2. FAB Camera */}
+              <div className="relative -top-8">
+                <button
+                  onClick={() => navigate('/camera')}
+                  className={`flex flex-col items-center justify-center w-20 h-20 rounded-full shadow-[0_15px_30px_-5px_rgba(0,0,0,0.3)] transition-all duration-500 transform border-[6px] border-[#C68E2D] ${
+                    isCameraActive
+                      ? 'bg-black text-[#C68E2D] scale-110'
+                      : 'bg-white text-black hover:scale-105'
+                  }`}
+                >
+                  <Camera className="w-9 h-9" />
+                </button>
+                <span className={`absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-widest whitespace-nowrap ${isCameraActive ? 'text-black' : 'text-white'}`}>
+                  Kamera
+                </span>
               </div>
-            )}
-          </button>
-        </div>
 
-        {/* 3. Tombol Riwayat */}
-        <button
-          onClick={() => navigate('/riwayat')}
-          className={`flex flex-col items-center space-y-1 w-1/3 ${
-            isRiwayatActive ? 'text-black' : 'text-white/70'
-          }`}
-        >
-          <Clock className="w-6 h-6" />
-          <span className="text-xs font-medium">Riwayat</span>
-        </button>
+              {/* 3. Riwayat */}
+              <button
+                onClick={() => navigate('/riwayat')}
+                className={`flex flex-col items-center space-y-1.5 pb-1 transition-all duration-300 w-20 ${
+                  isRiwayatActive ? 'text-black transform -translate-y-1' : 'text-white/80'
+                }`}
+              >
+                <div className={`p-2 rounded-xl transition-all ${isRiwayatActive ? 'bg-white shadow-lg' : ''}`}>
+                  <Clock className="w-6 h-6" />
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-widest">Riwayat</span>
+              </button>
             </>
           )}
         </div>
-      </div>
+      </nav>
     </div>
   );
 };

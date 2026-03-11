@@ -107,101 +107,75 @@ const EditUserPage: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
+    <div className="h-full flex flex-col bg-white font-sans">
       {/* Header with Back Button */}
-      <div className="bg-black text-white px-6 py-4 flex items-center shadow-lg shrink-0">
+      <div className="bg-black text-white px-6 py-5 flex items-center shadow-2xl shrink-0 z-10">
         <button
           onClick={handleBack}
-          className="flex items-center space-x-2 text-white hover:text-gray-300 transition-colors"
+          className="flex items-center space-x-3 text-white hover:text-[#C68E2D] transition-all active:scale-95 group"
         >
-          <ArrowLeft className="w-6 h-6" />
-          <span className="font-medium">Kembali</span>
+          <div className="p-2 bg-white/10 rounded-xl group-hover:bg-[#C68E2D]/20 transition-colors">
+            <ArrowLeft className="w-6 h-6" />
+          </div>
+          <span className="font-black uppercase tracking-[0.2em] text-sm">Kembali</span>
         </button>
       </div>
 
       {/* Main Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto px-6 py-8 space-y-8">
         {/* Form Header */}
-        <div className="bg-white px-6 py-6 shadow-md">
-          <h1 className="text-2xl font-bold text-gray-800">Edit User</h1>
-          <p className="text-gray-600 text-sm mt-1">
-            Edit informasi user yang ada
-          </p>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight uppercase">Edit User</h1>
+          <p className="text-gray-500 font-medium">Perbarui informasi data user</p>
         </div>
 
         {error && (
-          <div className="mx-6 mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-xl font-bold text-xs uppercase tracking-wider animate-pulse">
             {error}
           </div>
         )}
 
-        {/* Form */}
-        <div className="px-6 py-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Form Card */}
+        <div className="bg-[#FDE7E7] rounded-[32px] p-8 border border-[#FAD2D2] shadow-sm relative overflow-hidden">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative z-10">
             {/* Name Input (Read-only) */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Nama Lengkap
-              </label>
+            <div className="space-y-2 opacity-60">
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Nama Lengkap</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  id="name"
                   type="text"
                   value={user.name}
                   disabled
-                  className="w-full pl-10 pr-4 py-3 bg-gray-100 border-2 border-gray-300 rounded-lg text-gray-500 cursor-not-allowed"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-100/50 border-none rounded-2xl text-gray-500 font-bold cursor-not-allowed"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Nama tidak dapat diubah</p>
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama tidak dapat diubah</p>
             </div>
 
             {/* Email Input (Read-only) */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
+            <div className="space-y-2 opacity-60">
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  id="email"
                   type="email"
                   value={user.email}
                   disabled
-                  className="w-full pl-10 pr-4 py-3 bg-gray-100 border-2 border-gray-300 rounded-lg text-gray-500 cursor-not-allowed"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-100/50 border-none rounded-2xl text-gray-500 font-bold cursor-not-allowed"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Email tidak dapat diubah</p>
-            </div>
-
-            {/* Password Input (Note) */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  id="password"
-                  type="password"
-                  value="••••••••"
-                  disabled
-                  className="w-full pl-10 pr-4 py-3 bg-gray-100 border-2 border-gray-300 rounded-lg text-gray-500 cursor-not-allowed"
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Password dapat diubah melalui fitur reset password</p>
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">Email tidak dapat diubah</p>
             </div>
 
             {/* Role Input */}
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                Role
-              </label>
-              <div className="relative">
-                <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <div className="space-y-2">
+              <label htmlFor="role" className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Role</label>
+              <div className="relative group">
+                <Shield className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
                 <select
                   id="role"
-                  className={`w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:border-[#C68E2D] focus:outline-none text-gray-800 appearance-none cursor-pointer ${
+                  className={`w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold appearance-none cursor-pointer transition-all ${
                     user.id === currentUser?.uid ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   {...register('role')}
@@ -210,168 +184,89 @@ const EditUserPage: React.FC = () => {
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
                 </select>
-                <svg
-                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 ${
-                    user.id === currentUser?.uid ? 'hidden' : 'pointer-events-none'
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
               </div>
               {user.id === currentUser?.uid && (
-                <p className="text-xs text-gray-500 mt-1">Anda tidak dapat mengubah role sendiri</p>
-              )}
-              {errors.role && (
-                <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>
+                <p className="text-[9px] font-bold text-[#C68E2D] uppercase tracking-widest ml-1">Anda tidak dapat mengubah role sendiri</p>
               )}
             </div>
 
             {/* Status Input */}
-            <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                Status
-              </label>
-              <div className="relative">
+            <div className="space-y-2">
+              <label htmlFor="status" className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Status Akun</label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 flex items-center justify-center">
+                  <div className={`w-3 h-3 rounded-full animate-pulse ${getValues().status === 'active' ? 'bg-green-500' : getValues().status === 'inactive' ? 'bg-red-500' : 'bg-yellow-500'}`} />
+                </div>
                 <select
                   id="status"
-                  className="w-full pl-4 pr-10 py-3 bg-white border-2 border-gray-300 rounded-lg focus:border-[#C68E2D] focus:outline-none text-gray-800 appearance-none cursor-pointer"
+                  className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold appearance-none cursor-pointer transition-all"
                   {...register('status')}
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                   <option value="pending">Pending</option>
                 </select>
-                <svg
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
               </div>
-              {errors.status && (
-                <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
-              )}
             </div>
 
             {/* Event Date Input */}
-            <div>
-              <label htmlFor="eventDate" className="block text-sm font-medium text-gray-700 mb-2">
-                Tanggal Acara
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <div className="space-y-2">
+              <label htmlFor="eventDate" className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Tanggal Acara</label>
+              <div className="relative group">
+                <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
                 <input
                   id="eventDate"
                   type="date"
-                  className="w-full pl-10 pr-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:border-[#C68E2D] focus:outline-none text-gray-800"
+                  className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold transition-all"
                   {...register('eventDate')}
                 />
               </div>
-              {errors.eventDate && (
-                <p className="text-red-500 text-sm mt-1">{errors.eventDate.message}</p>
-              )}
             </div>
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={updateLoading}
-              className="w-full bg-[#C68E2D] hover:bg-[#B77E29] text-white font-semibold py-4 px-4 rounded-lg shadow-md transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {updateLoading ? (
-                <>
-                  <svg
-                    className="animate-spin w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  <span>Menyimpan...</span>
-                </>
-              ) : (
-                <>
-                  <Save className="w-5 h-5" />
-                  <span>Simpan Perubahan</span>
-                </>
-              )}
-            </button>
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={updateLoading}
+                className="w-full bg-black text-white font-black text-lg py-5 rounded-2xl border-2 border-white/10 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-black/10 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-[0.3em] shadow-xl"
+              >
+                {updateLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : (
+                  'Simpan Perubahan'
+                )}
+              </button>
+            </div>
           </form>
         </div>
       </div>
 
       {/* Confirmation Dialog */}
       {showConfirmDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-sm w-full p-6 shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+          <div className="bg-white rounded-[32px] max-w-sm w-full p-8 shadow-2xl border border-gray-100 transform transition-all scale-100">
             <div className="text-center">
-              {/* Warning Icon */}
-              <div className="mx-auto flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
-                <svg
-                  className="w-8 h-8 text-yellow-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
+              <div className="mx-auto flex items-center justify-center w-20 h-20 bg-[#FDE7E7] rounded-full mb-6">
+                <Save className="w-10 h-10 text-[#C68E2D]" />
               </div>
-
-              {/* Dialog Title */}
-              <h3 className="text-lg font-bold text-gray-800 mb-2">
-                Konfirmasi Edit User
-              </h3>
-
-              {/* Dialog Message */}
-              <p className="text-gray-600 text-sm mb-6">
-                Apakah Anda yakin ingin mengubah data user ini?
+              <h3 className="text-2xl font-black text-gray-900 mb-2 uppercase tracking-tight">Konfirmasi</h3>
+              <p className="text-gray-500 font-medium mb-8">
+                Simpan perubahan data user ini?
               </p>
-
-              {/* Dialog Buttons */}
-              <div className="flex space-x-3">
-                <button
-                  onClick={handleCancelSubmit}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg transition-colors"
-                >
-                  Batal
-                </button>
+              <div className="flex flex-col space-y-3">
                 <button
                   onClick={handleConfirmSubmit}
-                  className="flex-1 bg-[#C68E2D] hover:bg-[#B77E29] text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                  className="w-full bg-black text-white font-black py-4 rounded-2xl hover:bg-gray-900 transition-all uppercase tracking-widest text-sm shadow-lg active:scale-[0.98]"
                 >
                   Ya, Simpan
+                </button>
+                <button
+                  onClick={handleCancelSubmit}
+                  className="w-full bg-gray-100 text-gray-500 font-black py-4 rounded-2xl hover:bg-gray-200 transition-all uppercase tracking-widest text-sm"
+                >
+                  Batal
                 </button>
               </div>
             </div>
