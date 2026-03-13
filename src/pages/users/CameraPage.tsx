@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, CameraOff, Upload, RotateCcw, Zap, X, Mic, MicOff, Flashlight, FlashlightOff } from 'lucide-react';
+import { Camera, CameraOff, Upload, RotateCcw, Zap, X, Mic, MicOff, Flashlight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
@@ -9,7 +9,7 @@ const CameraPage: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [isCameraActive, setIsCameraActive] = useState(false);
-  const [isCapturing, setIsCapturing] = useState(false);
+  const [_, setIsCapturing] = useState(false);
   const [isFrontCamera, setIsFrontCamera] = useState(true);
   const [isMicEnabled, setIsMicEnabled] = useState(false);
   const [isFlashOn, setIsFlashOn] = useState(false);

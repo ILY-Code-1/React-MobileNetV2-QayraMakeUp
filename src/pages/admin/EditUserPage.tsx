@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { ArrowLeft, User, Mail, Calendar, Lock, Shield, Save } from 'lucide-react';
-import { useUserStore, type UserData } from '../../store/userStore';
+import { ArrowLeft, User, Mail, Calendar, Shield, Save } from 'lucide-react';
+import { useUserStore } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
 
 interface EditFormData {
@@ -17,7 +17,7 @@ const EditUserPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { users, updateUser, loading: updateLoading } = useUserStore();
-  const { currentUser } = useAuthStore();
+  const { user: currentUser } = useAuthStore();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userFound, setUserFound] = useState(false);
@@ -27,9 +27,8 @@ const EditUserPage: React.FC = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
     setValue,
-    reset,
+    getValues
   } = useForm<EditFormData>();
 
   useEffect(() => {
@@ -45,7 +44,7 @@ const EditUserPage: React.FC = () => {
     }
   }, [user, setValue]);
 
-  const onSubmit = (data: EditFormData) => {
+  const onSubmit = () => {
     if (error) {
       setError(null);
     }
@@ -59,7 +58,8 @@ const EditUserPage: React.FC = () => {
     setError(null);
 
     try {
-      const success = await updateUser(id, {
+      const success = await updateUser({
+        uid: id,
         name: user.name,
         email: user.email,
         role: getValues().role,
@@ -145,7 +145,7 @@ const EditUserPage: React.FC = () => {
                 <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  value={user.name}
+                  value={user?.name}
                   disabled
                   className="w-full pl-12 pr-4 py-4 bg-gray-100/50 border-none rounded-2xl text-gray-500 font-bold cursor-not-allowed"
                 />
@@ -160,7 +160,7 @@ const EditUserPage: React.FC = () => {
                 <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="email"
-                  value={user.email}
+                  value={user?.email}
                   disabled
                   className="w-full pl-12 pr-4 py-4 bg-gray-100/50 border-none rounded-2xl text-gray-500 font-bold cursor-not-allowed"
                 />
@@ -176,16 +176,16 @@ const EditUserPage: React.FC = () => {
                 <select
                   id="role"
                   className={`w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold appearance-none cursor-pointer transition-all ${
-                    user.id === currentUser?.uid ? 'opacity-50 cursor-not-allowed' : ''
+                    user?.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   {...register('role')}
-                  disabled={user.id === currentUser?.uid}
+                  disabled={user?.id === currentUser?.id}
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
-              {user.id === currentUser?.uid && (
+              {user?.id === currentUser?.id && (
                 <p className="text-[9px] font-bold text-[#C68E2D] uppercase tracking-widest ml-1">Anda tidak dapat mengubah role sendiri</p>
               )}
             </div>

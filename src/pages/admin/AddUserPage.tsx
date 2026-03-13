@@ -30,7 +30,7 @@ const AddUserPage: React.FC = () => {
     },
   });
 
-  const onSubmit = (data: UserData) => {
+  const onSubmit = () => {
     setShowConfirmDialog(true);
   };
 

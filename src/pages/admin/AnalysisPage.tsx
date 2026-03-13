@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Trash2, Calendar, Mail, User } from 'lucide-react';
+import { Search, Trash2 } from 'lucide-react';
 import { useAnalysisStore } from '../../store/analysisStore';
 import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
 
 const AnalysisPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate()
 
   const analyses = useAnalysisStore((state) => state.analyses);
   const loading = useAnalysisStore((state) => state.loading);

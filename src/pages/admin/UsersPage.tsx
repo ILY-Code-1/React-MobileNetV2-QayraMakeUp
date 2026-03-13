@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Calendar, Mail, User, Edit2, Shield, Trash2 } from 'lucide-react';
+import { Search, Plus, User, Edit2, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
-import { useUserStore, type UserData } from '../../store/userStore';
+import { useUserStore } from '../../store/userStore';
 import Swal from 'sweetalert2';
 
 const UsersPage: React.FC = () => {
@@ -178,9 +178,9 @@ const UsersPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleDelete(u.id)}
-                            disabled={u.id === currentUser?.uid}
+                            disabled={u.id === currentUser?.id}
                             className={`p-2 rounded-lg transition-colors ${
-                              u.id === currentUser?.uid
+                              u.id === currentUser?.id
                                 ? 'text-gray-200 cursor-not-allowed'
                                 : 'text-red-400 hover:bg-red-50'
                             }`}

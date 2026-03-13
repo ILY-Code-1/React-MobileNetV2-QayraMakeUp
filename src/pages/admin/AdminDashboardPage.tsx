@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { User, BarChart3, Bell, Users } from 'lucide-react';
+import { User, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/authStore';
+// import { useAuthStore } from '../../store/authStore';
 import { useUserStore } from '../../store/userStore';
 import { useAnalysisStore } from '../../store/analysisStore';
 
 const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user);
+  // const user = useAuthStore((state) => state.user);
 
   const users = useUserStore((state) => state.users);
   const getAllUsers = useUserStore((state) => state.getAllUsers);
@@ -15,7 +15,7 @@ const AdminDashboardPage: React.FC = () => {
   const analyses = useAnalysisStore((state) => state.analyses);
   const fetchAllAnalyses = useAnalysisStore((state) => state.fetchAllAnalyses);
 
-  const [pendingCount, setPendingCount] = useState(0);
+  const [_, setPendingCount] = useState(0);
 
   useEffect(() => {
     getAllUsers();

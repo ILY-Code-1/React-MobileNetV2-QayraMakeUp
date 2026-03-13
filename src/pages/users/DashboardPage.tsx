@@ -14,7 +14,7 @@ const DashboardPage: React.FC = () => {
     }
   }, [user?.id, fetchUserAnalyses]);
 
-  const recentAnalyses = analyses.slice(0, 3);
+  // const recentAnalyses = analyses.slice(0, 3);
 
   return (
     <div className="px-6 py-6 pb-24 space-y-10 bg-white min-h-full font-sans">
