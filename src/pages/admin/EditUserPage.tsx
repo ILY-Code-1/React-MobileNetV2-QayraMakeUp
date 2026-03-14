@@ -10,7 +10,7 @@ interface EditFormData {
   email: string;
   role: 'admin' | 'user';
   status: 'active' | 'inactive' | 'pending';
-  eventDate: string;
+  eventDate?: string;
 }
 
 const EditUserPage: React.FC = () => {
@@ -28,8 +28,12 @@ const EditUserPage: React.FC = () => {
     register,
     handleSubmit,
     setValue,
-    getValues
+    getValues,
+    watch
   } = useForm<EditFormData>();
+
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const selectedRole = watch('role');
 
   useEffect(() => {
     if (user) {
@@ -58,18 +62,20 @@ const EditUserPage: React.FC = () => {
     setError(null);
 
     try {
+      const formData = getValues();
       const success = await updateUser({
         uid: id,
-        name: user.name,
+        name: formData.name,
         email: user.email,
-        role: getValues().role,
-        status: getValues().status,
-        eventDate: new Date(getValues().eventDate).toISOString(),
+        role: formData.role,
+        status: formData.status,
+        eventDate: formData.role === 'admin' || !formData.eventDate ? '' : new Date(formData.eventDate).toISOString(),
       });
 
       if (success) {
         navigate('/users');
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message || 'Gagal mengupdate user');
     }
@@ -97,7 +103,7 @@ const EditUserPage: React.FC = () => {
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <User className="w-16 h-16 text-black mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-700 mb-2">User Tidak Ditemukan</h2>
             <p className="text-gray-500">User dengan ID tersebut tidak ada</p>
           </div>
@@ -136,91 +142,98 @@ const EditUserPage: React.FC = () => {
         )}
 
         {/* Form Card */}
-        <div className="bg-[#FDE7E7] rounded-[32px] p-8 border border-[#FAD2D2] shadow-sm relative overflow-hidden">
+        <div className="bg-[#C68E2D]/10 rounded-4xl p-8 border border-[#C68E2D]/20 shadow-sm relative overflow-hidden">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative z-10">
-            {/* Name Input (Read-only) */}
-            <div className="space-y-2 opacity-60">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Nama Lengkap</label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            {/* Name Input */}
+            <div className="space-y-2">
+              <label htmlFor="name" className="block text-[10px] font-black text-black uppercase tracking-[0.2em] ml-1">Nama Lengkap</label>
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-black group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
                 <input
+                  id="name"
                   type="text"
-                  value={user?.name}
-                  disabled
-                  className="w-full pl-12 pr-4 py-4 bg-gray-100/50 border-none rounded-2xl text-gray-500 font-bold cursor-not-allowed"
+                  placeholder="Masukkan nama lengkap"
+                  className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold placeholder-gray-400 transition-all"
+                  {...register('name', { required: 'Nama lengkap wajib diisi' })}
                 />
               </div>
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nama tidak dapat diubah</p>
             </div>
 
             {/* Email Input (Read-only) */}
             <div className="space-y-2 opacity-60">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Email</label>
+              <label className="block text-[10px] font-black text-black uppercase tracking-[0.2em] ml-1">Email</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-black w-5 h-5" />
                 <input
                   type="email"
                   value={user?.email}
                   disabled
+                  title="Email"
+                  placeholder="user@example.com"
                   className="w-full pl-12 pr-4 py-4 bg-gray-100/50 border-none rounded-2xl text-gray-500 font-bold cursor-not-allowed"
                 />
               </div>
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">Email tidak dapat diubah</p>
+              <p className="text-[9px] font-bold text-black uppercase tracking-widest ml-1">Email tidak dapat diubah</p>
             </div>
 
-            {/* Role Input */}
-            <div className="space-y-2">
-              <label htmlFor="role" className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Role</label>
-              <div className="relative group">
-                <Shield className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
-                <select
-                  id="role"
-                  className={`w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold appearance-none cursor-pointer transition-all ${
-                    user?.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  {...register('role')}
-                  disabled={user?.id === currentUser?.id}
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-              {user?.id === currentUser?.id && (
-                <p className="text-[9px] font-bold text-[#C68E2D] uppercase tracking-widest ml-1">Anda tidak dapat mengubah role sendiri</p>
-              )}
-            </div>
-
-            {/* Status Input */}
-            <div className="space-y-2">
-              <label htmlFor="status" className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Status Akun</label>
-              <div className="relative group">
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 flex items-center justify-center">
-                  <div className={`w-3 h-3 rounded-full animate-pulse ${getValues().status === 'active' ? 'bg-green-500' : getValues().status === 'inactive' ? 'bg-red-500' : 'bg-yellow-500'}`} />
+            {/* Role, Status & Date - Single Column */}
+            <div className="space-y-6">
+              {/* Role Input */}
+              <div className="space-y-2">
+                <label htmlFor="role" className="block text-[10px] font-black text-black uppercase tracking-[0.2em] ml-1">Role</label>
+                <div className="relative group">
+                  <Shield className="absolute left-4 top-1/2 transform -translate-y-1/2 text-black group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
+                  <select
+                    id="role"
+                    className={`w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold appearance-none cursor-pointer transition-all ${
+                      user?.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    {...register('role')}
+                    disabled={user?.id === currentUser?.id}
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                  </select>
                 </div>
-                <select
-                  id="status"
-                  className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold appearance-none cursor-pointer transition-all"
-                  {...register('status')}
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="pending">Pending</option>
-                </select>
+                {user?.id === currentUser?.id && (
+                  <p className="text-[9px] font-bold text-[#C68E2D] uppercase tracking-widest ml-1">Anda tidak dapat mengubah role sendiri</p>
+                )}
               </div>
-            </div>
 
-            {/* Event Date Input */}
-            <div className="space-y-2">
-              <label htmlFor="eventDate" className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Tanggal Acara</label>
-              <div className="relative group">
-                <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
-                <input
-                  id="eventDate"
-                  type="date"
-                  className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold transition-all"
-                  {...register('eventDate')}
-                />
+              {/* Status Input */}
+              <div className="space-y-2">
+                <label htmlFor="status" className="block text-[10px] font-black text-black uppercase tracking-[0.2em] ml-1">Status Akun</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 flex items-center justify-center">
+                    <div className={`w-3 h-3 rounded-full animate-pulse ${getValues().status === 'active' ? 'bg-green-500' : getValues().status === 'inactive' ? 'bg-red-500' : 'bg-yellow-500'}`} />
+                  </div>
+                  <select
+                    id="status"
+                    className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold appearance-none cursor-pointer transition-all"
+                    {...register('status')}
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                </div>
               </div>
+
+              {/* Event Date Input */}
+              {selectedRole !== 'admin' && (
+                <div className="space-y-2">
+                  <label htmlFor="eventDate" className="block text-[10px] font-black text-black uppercase tracking-[0.2em] ml-1">Tanggal Acara</label>
+                  <div className="relative group">
+                    <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-black group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
+                    <input
+                      id="eventDate"
+                      type="date"
+                      className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold transition-all"
+                      {...register('eventDate')}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Submit Button */}
@@ -246,9 +259,9 @@ const EditUserPage: React.FC = () => {
       {/* Confirmation Dialog */}
       {showConfirmDialog && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-          <div className="bg-white rounded-[32px] max-w-sm w-full p-8 shadow-2xl border border-gray-100 transform transition-all scale-100">
+          <div className="bg-white rounded-4xl max-w-sm w-full p-8 shadow-2xl border border-gray-100 transform transition-all scale-100">
             <div className="text-center">
-              <div className="mx-auto flex items-center justify-center w-20 h-20 bg-[#FDE7E7] rounded-full mb-6">
+              <div className="mx-auto flex items-center justify-center w-20 h-20 bg-[#C68E2D]/10 rounded-full mb-6">
                 <Save className="w-10 h-10 text-[#C68E2D]" />
               </div>
               <h3 className="text-2xl font-black text-gray-900 mb-2 uppercase tracking-tight">Konfirmasi</h3>

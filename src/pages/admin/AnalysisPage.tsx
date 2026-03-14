@@ -61,59 +61,52 @@ const AnalysisPage: React.FC = () => {
           placeholder="Cari berdasarkan nama atau email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-12 pr-4 py-4 bg-[#FDE7E7] border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-medium placeholder-gray-400 shadow-sm transition-all"
+          className="w-full pl-12 pr-4 py-4 bg-[#C68E2D]/5 border-2 border-transparent focus:border-[#C68E2D]/20 rounded-2xl focus:ring-0 text-gray-800 font-bold placeholder-gray-400 transition-all shadow-sm"
         />
       </div>
 
       {/* Analysis Table Container */}
-      <div className="bg-[#FDE7E7] rounded-[32px] p-6 border border-[#FAD2D2] shadow-sm relative overflow-hidden">
+      <div className="bg-[#C68E2D]/10 rounded-4xl p-4 sm:p-6 border border-[#C68E2D]/20 shadow-sm relative overflow-hidden">
         <div className="relative z-10">
           {loading ? (
             <div className="py-20 text-center">
               <div className="animate-spin w-12 h-12 border-4 border-[#C68E2D] border-t-transparent rounded-full mx-auto mb-4" />
-              <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Memuat data...</p>
+              <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Memuat data...</p>
             </div>
           ) : filteredAnalyses.length > 0 ? (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
               <table className="min-w-full text-left border-separate border-spacing-y-3">
                 <thead>
                   <tr className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                    <th className="px-4 py-2">Nama</th>
-                    <th className="px-4 py-2 text-center">|</th>
-                    <th className="px-4 py-2">Email</th>
-                    <th className="px-4 py-2 text-center">|</th>
+                    <th className="px-4 py-2">Info Klien</th>
                     <th className="px-4 py-2">Tgl Acara</th>
-                    <th className="px-4 py-2 text-center">|</th>
-                    <th className="px-4 py-2 text-center">Action</th>
+                    <th className="px-4 py-2 text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredAnalyses.map((analysis) => (
                     <tr
                       key={analysis.id}
-                      className="bg-white/80 backdrop-blur-sm hover:bg-white transition-all group shadow-sm"
+                      className="bg-white/90 backdrop-blur-sm hover:bg-white transition-all group shadow-sm rounded-2xl"
                     >
                       <td className="px-4 py-4 rounded-l-2xl">
-                        <span className="font-bold text-gray-900 group-hover:text-[#C68E2D] transition-colors">{analysis.name}</span>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-900 group-hover:text-[#C68E2D] transition-colors">{analysis.name}</span>
+                          <span className="text-[10px] font-medium text-gray-500">{analysis.email}</span>
+                        </div>
                       </td>
-                      <td className="px-2 py-4 text-gray-100 text-center">|</td>
                       <td className="px-4 py-4">
-                        <span className="text-xs font-medium text-gray-600">{analysis.email}</span>
-                      </td>
-                      <td className="px-2 py-4 text-gray-100 text-center">|</td>
-                      <td className="px-4 py-4">
-                        <span className="text-xs font-bold text-gray-700">
-                          {analysis.eventDate
+                        <span className="text-[11px] font-bold text-gray-700">
+                          {analysis.eventDate && !isNaN(new Date(analysis.eventDate).getTime())
                             ? new Date(analysis.eventDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
                             : '-'}
                         </span>
                       </td>
-                      <td className="px-2 py-4 text-gray-100 text-center">|</td>
-                      <td className="px-4 py-4 rounded-r-2xl text-center">
-                        <div className="flex items-center justify-center space-x-2">
+                      <td className="px-4 py-4 rounded-r-2xl text-right">
+                        <div className="flex items-center justify-end space-x-1">
                           <button
                             onClick={() => navigate(`/analysis/${analysis.id}`)}
-                            className="p-2 text-[#C68E2D] hover:bg-amber-50 rounded-lg transition-colors"
+                            className="p-2.5 text-[#C68E2D] hover:bg-amber-50 rounded-xl transition-all active:scale-90"
                             title="Detail"
                           >
                             <Search className="w-4 h-4" />
@@ -121,7 +114,7 @@ const AnalysisPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleDelete(analysis.id)}
-                            className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-90"
                             title="Hapus"
                           >
                             <Trash2 className="w-4 h-4" />

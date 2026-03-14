@@ -94,21 +94,31 @@ export const getAllUsers = async (filters?: {
   if (filters?.status) {
     q = query(
       collection(db, USERS_COLLECTION),
-      where('status', '==', filters.status),
-      orderBy('createdAt', 'desc')
+      where('status', '==', filters.status)
     );
   } else if (filters?.role) {
     q = query(
       collection(db, USERS_COLLECTION),
-      where('role', '==', filters.role),
-      orderBy('createdAt', 'desc')
+      where('role', '==', filters.role)
     );
   } else {
-    q = query(collection(db, USERS_COLLECTION), orderBy('createdAt', 'desc'));
+    q = query(collection(db, USERS_COLLECTION));
   }
 
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as UserData));
+  const users = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as UserData));
+
+  // Sort in memory to include documents without createdAt field
+  return users.sort((a, b) => {
+    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    
+    // Handle invalid dates (NaN)
+    const validA = isNaN(timeA) ? 0 : timeA;
+    const validB = isNaN(timeB) ? 0 : timeB;
+    
+    return validB - validA; // Descending order
+  });
 };
 
 export const getUserById = async (userId: string): Promise<UserData | null> => {

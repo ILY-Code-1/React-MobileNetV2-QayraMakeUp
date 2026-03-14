@@ -9,7 +9,7 @@ interface UserData {
   email: string;
   password: string;
   role: 'admin' | 'user';
-  eventDate: string;
+  eventDate?: string;
 }
 
 const AddUserPage: React.FC = () => {
@@ -24,11 +24,14 @@ const AddUserPage: React.FC = () => {
     formState: { errors },
     reset,
     getValues,
+    watch,
   } = useForm<UserData>({
     defaultValues: {
       role: 'user',
     },
   });
+
+  const selectedRole = watch('role');
 
   const onSubmit = () => {
     setShowConfirmDialog(true);
@@ -45,7 +48,7 @@ const AddUserPage: React.FC = () => {
         email: formData.email,
         password: formData.password,
         role: formData.role,
-        eventDate: new Date(formData.eventDate).toISOString(),
+        eventDate: formData.role === 'admin' || !formData.eventDate ? '' : new Date(formData.eventDate).toISOString(),
       });
 
       if (success) {
@@ -93,15 +96,15 @@ const AddUserPage: React.FC = () => {
         </div>
 
         {/* Form Card */}
-        <div className="bg-[#FDE7E7] rounded-[32px] p-8 border border-[#FAD2D2] shadow-sm relative overflow-hidden">
+        <div className="bg-[#C68E2D]/10 rounded-4xl p-8 border border-[#C68E2D]/20 shadow-sm relative overflow-hidden">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative z-10">
             {/* Name Input */}
             <div className="space-y-2">
-              <label htmlFor="name" className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
+              <label htmlFor="name" className="block text-[10px] font-black text-black uppercase tracking-[0.2em] ml-1">
                 Nama Lengkap
               </label>
               <div className="relative group">
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-black group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
                 <input
                   id="name"
                   type="text"
@@ -123,11 +126,11 @@ const AddUserPage: React.FC = () => {
 
             {/* Email Input */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
+              <label htmlFor="email" className="block text-[10px] font-black text-black uppercase tracking-[0.2em] ml-1">
                 Email
               </label>
               <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-black group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
                 <input
                   id="email"
                   type="email"
@@ -149,11 +152,11 @@ const AddUserPage: React.FC = () => {
 
             {/* Password Input */}
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
+              <label htmlFor="password" className="block text-[10px] font-black text-black uppercase tracking-[0.2em] ml-1">
                 Password
               </label>
               <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-black group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
                 <input
                   id="password"
                   type="password"
@@ -173,14 +176,14 @@ const AddUserPage: React.FC = () => {
               )}
             </div>
 
-            {/* Role & Date Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Role & Date - Single Column */}
+            <div className="space-y-6">
               <div className="space-y-2">
-                <label htmlFor="role" className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
+                <label htmlFor="role" className="block text-[10px] font-black text-black uppercase tracking-[0.2em] ml-1">
                   Role
                 </label>
                 <div className="relative group">
-                  <Shield className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
+                  <Shield className="absolute left-4 top-1/2 transform -translate-y-1/2 text-black group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
                   <select
                     id="role"
                     className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold appearance-none cursor-pointer transition-all"
@@ -192,22 +195,27 @@ const AddUserPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="eventDate" className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
-                  Tanggal Acara
-                </label>
-                <div className="relative group">
-                  <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
-                  <input
-                    id="eventDate"
-                    type="date"
-                    className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold transition-all"
-                    {...register('eventDate', {
-                      required: 'Wajib diisi',
-                    })}
-                  />
+              {selectedRole !== 'admin' && (
+                <div className="space-y-2">
+                  <label htmlFor="eventDate" className="block text-[10px] font-black text-black uppercase tracking-[0.2em] ml-1">
+                    Tanggal Acara
+                  </label>
+                  <div className="relative group">
+                    <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-black group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
+                    <input
+                      id="eventDate"
+                      type="date"
+                      className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold transition-all"
+                      {...register('eventDate', {
+                        required: selectedRole !== 'user' ? 'Wajib diisi' : false,
+                      })}
+                    />
+                  </div>
+                  {errors.eventDate && (
+                    <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider mt-1 ml-1">{errors.eventDate.message}</p>
+                  )}
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Submit Button */}
@@ -233,9 +241,9 @@ const AddUserPage: React.FC = () => {
       {/* Confirmation Dialog */}
       {showConfirmDialog && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-          <div className="bg-white rounded-[32px] max-w-sm w-full p-8 shadow-2xl border border-gray-100 transform transition-all scale-100">
+          <div className="bg-white rounded-4xl max-w-sm w-full p-8 shadow-2xl border border-gray-100 transform transition-all scale-100">
             <div className="text-center">
-              <div className="mx-auto flex items-center justify-center w-20 h-20 bg-[#FDE7E7] rounded-full mb-6">
+              <div className="mx-auto flex items-center justify-center w-20 h-20 bg-[#C68E2D]/10 rounded-full mb-6">
                 <Shield className="w-10 h-10 text-[#C68E2D]" />
               </div>
               <h3 className="text-2xl font-black text-gray-900 mb-2 uppercase tracking-tight">Konfirmasi</h3>

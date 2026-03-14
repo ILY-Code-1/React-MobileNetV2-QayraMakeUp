@@ -108,7 +108,7 @@ const AnalysisDetailPage: React.FC = () => {
         {/* Info Grid */}
         <div className="grid grid-cols-1 gap-6">
           {/* Tanggal Acara Card */}
-          <div className="bg-[#FDE7E7] rounded-[32px] p-8 border border-[#FAD2D2] shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+          <div className="bg-[#C68E2D]/10 rounded-4xl p-8 border border-[#C68E2D]/20 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
             <div className="flex items-center space-x-4 mb-4">
               <div className="p-3 bg-white rounded-2xl shadow-sm text-[#C68E2D]">
                 <Calendar className="w-6 h-6" />
@@ -116,22 +116,24 @@ const AnalysisDetailPage: React.FC = () => {
               <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight">Tanggal Acara</h2>
             </div>
             <p className="text-2xl font-black text-gray-800 ml-2">
-              {analysisData.eventDate
+              {analysisData.eventDate && !isNaN(new Date(analysisData.eventDate).getTime())
                 ? new Date(analysisData.eventDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
                 : '-'}
             </p>
           </div>
 
           {/* Hasil Analisis Detail Card */}
-          <div className="bg-[#FDE7E7] rounded-[32px] p-8 border border-[#FAD2D2] shadow-sm relative overflow-hidden group hover:shadow-md transition-all min-h-[200px] flex flex-col justify-center">
+          <div className="bg-[#C68E2D]/10 rounded-4xl p-8 border border-[#C68E2D]/20 shadow-sm relative overflow-hidden group hover:shadow-md transition-all min-h-50 flex flex-col justify-center">
             <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em] mb-6 text-center">Hasil Analisis</h2>
             <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/40">
               <p className="text-xl font-black text-gray-900 leading-relaxed uppercase tracking-wide">
                 {analysisData.result ?? 'Analisis Selesai'}
               </p>
-              <p className="text-[10px] font-bold text-gray-400 mt-4 uppercase tracking-[0.2em]">
-                Dianalisis pada {new Date(analysisData.createdAt || '').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-              </p>
+              {analysisData.createdAt && !isNaN(new Date(analysisData.createdAt).getTime()) && (
+                <p className="text-[10px] font-bold text-gray-400 mt-4 uppercase tracking-[0.2em]">
+                  Dianalisis pada {new Date(analysisData.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+              )}
             </div>
           </div>
 

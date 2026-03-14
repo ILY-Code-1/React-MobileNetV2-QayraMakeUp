@@ -9,7 +9,7 @@ const CameraPage: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [isCameraActive, setIsCameraActive] = useState(false);
-  const [_, setIsCapturing] = useState(false);
+  const [, setIsCapturing] = useState(false);
   const [isFrontCamera, setIsFrontCamera] = useState(true);
   const [isMicEnabled, setIsMicEnabled] = useState(false);
   const [isFlashOn, setIsFlashOn] = useState(false);
@@ -18,9 +18,19 @@ const CameraPage: React.FC = () => {
 
   // Request camera permissions
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     startCamera();
     return () => {
-      stopCamera();
+      // Clean up camera stream on unmount
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach((track) => {
+          track.stop();
+          console.log('Camera track stopped');
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        videoRef.current.srcObject = null;
+      }
     };
   }, []);
 
@@ -236,7 +246,7 @@ const CameraPage: React.FC = () => {
                 {/* Upload Button */}
                 <button
                   onClick={handleUpload}
-                  className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white hover:from-blue-600 hover:to-blue-700 shadow-lg transform hover:scale-110 transition-all duration-200"
+                  className="w-14 h-14 bg-linear-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white hover:from-blue-600 hover:to-blue-700 shadow-lg transform hover:scale-110 transition-all duration-200"
                   title="Upload Photo"
                 >
                   <Upload className="w-7 h-7" />
@@ -249,7 +259,7 @@ const CameraPage: React.FC = () => {
                     {/* Retake Button */}
                     <button
                       onClick={handleRetake}
-                      className="w-14 h-14 bg-gradient-to-br from-gray-500 to-gray-600 rounded-2xl flex items-center justify-center text-white hover:from-gray-600 hover:to-gray-700 shadow-lg transform hover:scale-110 transition-all duration-200"
+                      className="w-14 h-14 bg-linear-to-br from-gray-500 to-gray-600 rounded-2xl flex items-center justify-center text-white hover:from-gray-600 hover:to-gray-700 shadow-lg transform hover:scale-110 transition-all duration-200"
                       title="Retake Photo"
                     >
                       <RotateCcw className="w-7 h-7" />
@@ -258,7 +268,7 @@ const CameraPage: React.FC = () => {
                     {/* Confirm Button */}
                     <button
                       onClick={handleConfirmPhoto}
-                      className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center text-white hover:from-green-600 hover:to-green-700 shadow-lg transform hover:scale-110 transition-all duration-200"
+                      className="w-14 h-14 bg-linear-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center text-white hover:from-green-600 hover:to-green-700 shadow-lg transform hover:scale-110 transition-all duration-200"
                       title="Confirm Photo"
                     >
                       <Camera className="w-7 h-7" />
@@ -267,7 +277,7 @@ const CameraPage: React.FC = () => {
                     {/* Delete Button */}
                     <button
                       onClick={handleDeletePhoto}
-                      className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center text-white hover:from-red-600 hover:to-red-700 shadow-lg transform hover:scale-110 transition-all duration-200"
+                      className="w-14 h-14 bg-linear-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center text-white hover:from-red-600 hover:to-red-700 shadow-lg transform hover:scale-110 transition-all duration-200"
                       title="Delete Photo"
                     >
                       <X className="w-7 h-7" />
@@ -277,7 +287,7 @@ const CameraPage: React.FC = () => {
                   // Normal Capture Mode
                   <button
                     onClick={handleCapture}
-                    className="w-16 h-16 bg-gradient-to-br from-[#C68E2D] to-[#B77E29] rounded-full flex items-center justify-center text-white hover:from-[#B77E29] hover:to-[#A68E19] shadow-2xl transform hover:scale-110 transition-all duration-200 ring-4 ring-white/50"
+                    className="w-16 h-16 bg-linear-to-br from-[#C68E2D] to-[#B77E29] rounded-full flex items-center justify-center text-white hover:from-[#B77E29] hover:to-[#A68E19] shadow-2xl transform hover:scale-110 transition-all duration-200 ring-4 ring-white/50"
                     title="Capture Photo"
                   >
                     <Camera className="w-8 h-8" />

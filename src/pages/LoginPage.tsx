@@ -75,7 +75,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FDE7E7] font-sans">
+    <div className="min-h-screen flex items-center justify-center bg-[#C68E2D]/5 font-sans">
       <div className="max-w-md w-full mx-6 relative">
         {/* Logo Bulat - Floating Above */}
         <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 z-20">
@@ -108,7 +108,7 @@ const LoginPage: React.FC = () => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Email"
-                className="w-full bg-[#FDE7E7] text-gray-800 placeholder-gray-500 px-5 py-4 rounded-md border-none focus:ring-2 focus:ring-black transition-all duration-300"
+                className="w-full bg-[#ffffff] text-gray-800 placeholder-gray-500 px-5 py-4 rounded-md border-none focus:ring-2 focus:ring-black transition-all duration-300"
                 disabled={loading}
                 required
               />
@@ -122,7 +122,7 @@ const LoginPage: React.FC = () => {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Password"
-                className="w-full bg-[#FDE7E7] text-gray-800 placeholder-gray-500 px-5 py-4 rounded-md border-none focus:ring-2 focus:ring-black transition-all duration-300 pr-12"
+                className="w-full bg-[#ffffff] text-gray-800 placeholder-gray-500 px-5 py-4 rounded-md border-none focus:ring-2 focus:ring-black transition-all duration-300 pr-12"
                 disabled={loading}
                 required
               />
@@ -131,7 +131,7 @@ const LoginPage: React.FC = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition-colors"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
               </button>
             </div>
 
