@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, CameraOff, Upload, RotateCcw, Zap, X, Mic, MicOff, Flashlight } from 'lucide-react';
+import { Camera, Upload, RotateCcw, Zap, Flashlight, Check, SwitchCamera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
@@ -11,7 +11,7 @@ const CameraPage: React.FC = () => {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [, setIsCapturing] = useState(false);
   const [isFrontCamera, setIsFrontCamera] = useState(true);
-  const [isMicEnabled, setIsMicEnabled] = useState(false);
+  const [isMicEnabled, _] = useState(false);
   const [isFlashOn, setIsFlashOn] = useState(false);
   const [showPhotoPreview, setShowPhotoPreview] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
@@ -153,13 +153,6 @@ const CameraPage: React.FC = () => {
     });
   };
 
-  const handleDeletePhoto = () => {
-    setShowPhotoPreview(false);
-    setCapturedPhoto(null);
-    setIsCapturing(false);
-    setIsCameraActive(true);
-  };
-
   return (
     <div className="relative h-full bg-black">
       {/* Video Container */}
@@ -199,18 +192,7 @@ const CameraPage: React.FC = () => {
                 className="w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors border border-white/30"
                 title="Switch Camera"
               >
-                <RotateCcw className="w-6 h-6" />
-              </button>
-
-              {/* Toggle Mic Button */}
-              <button
-                onClick={() => setIsMicEnabled(!isMicEnabled)}
-                className={`w-12 h-12 ${
-                  isMicEnabled ? 'bg-[#C68E2D]' : 'bg-black/50 backdrop-blur-sm'
-                } rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors border border-white/30`}
-                title={isMicEnabled ? 'Turn off mic' : 'Turn on mic'}
-              >
-                {isMicEnabled ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
+                <SwitchCamera className="w-6 h-6" />
               </button>
 
               {/* Toggle Flash Button */}
@@ -243,19 +225,19 @@ const CameraPage: React.FC = () => {
             {/* Floating Action Bar - Like Flutter */}
             <div className="bg-black/70 backdrop-blur-md rounded-3xl px-6 py-4 border border-white/20 shadow-2xl">
               <div className="flex items-center space-x-4">
-                {/* Upload Button */}
-                <button
-                  onClick={handleUpload}
-                  className="w-14 h-14 bg-linear-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white hover:from-blue-600 hover:to-blue-700 shadow-lg transform hover:scale-110 transition-all duration-200"
-                  title="Upload Photo"
-                >
-                  <Upload className="w-7 h-7" />
-                </button>
-
                 {/* Capture Button - Main FAB */}
                 {showPhotoPreview ? (
                   // Photo Preview Actions
                   <div className="flex items-center space-x-4">
+                    {/* Confirm Button */}
+                    <button
+                      onClick={handleConfirmPhoto}
+                      className="w-14 h-14 bg-linear-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center text-white hover:from-green-600 hover:to-green-700 shadow-lg transform hover:scale-110 transition-all duration-200"
+                      title="Confirm Photo"
+                    >
+                      <Check className="w-7 h-7" />
+                    </button>
+
                     {/* Retake Button */}
                     <button
                       onClick={handleRetake}
@@ -264,98 +246,30 @@ const CameraPage: React.FC = () => {
                     >
                       <RotateCcw className="w-7 h-7" />
                     </button>
-
-                    {/* Confirm Button */}
-                    <button
-                      onClick={handleConfirmPhoto}
-                      className="w-14 h-14 bg-linear-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center text-white hover:from-green-600 hover:to-green-700 shadow-lg transform hover:scale-110 transition-all duration-200"
-                      title="Confirm Photo"
-                    >
-                      <Camera className="w-7 h-7" />
-                    </button>
-
-                    {/* Delete Button */}
-                    <button
-                      onClick={handleDeletePhoto}
-                      className="w-14 h-14 bg-linear-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center text-white hover:from-red-600 hover:to-red-700 shadow-lg transform hover:scale-110 transition-all duration-200"
-                      title="Delete Photo"
-                    >
-                      <X className="w-7 h-7" />
-                    </button>
                   </div>
                 ) : (
                   // Normal Capture Mode
-                  <button
-                    onClick={handleCapture}
-                    className="w-16 h-16 bg-linear-to-br from-[#C68E2D] to-[#B77E29] rounded-full flex items-center justify-center text-white hover:from-[#B77E29] hover:to-[#A68E19] shadow-2xl transform hover:scale-110 transition-all duration-200 ring-4 ring-white/50"
-                    title="Capture Photo"
-                  >
-                    <Camera className="w-8 h-8" />
-                  </button>
+                  <div className="flex items-center space-x-4">
+                    <button
+                      onClick={handleUpload}
+                      className="w-14 h-14 bg-linear-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white hover:from-blue-600 hover:to-blue-700 shadow-lg transform hover:scale-110 transition-all duration-200"
+                      title="Upload Photo"
+                    >
+                      <Upload className="w-7 h-7" />
+                    </button>
+                    <button
+                      onClick={handleCapture}
+                      className="w-14 h-14 bg-linear-to-br from-[#C68E2D] to-[#B77E29] rounded-full flex items-center justify-center text-white hover:from-[#B77E29] hover:to-[#A68E19] shadow-2xl transform hover:scale-110 transition-all duration-200 ring-4 ring-white/50"
+                      title="Capture Photo"
+                    >
+                      <Camera className="w-8 h-8" />
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
-
-            {/* Help Hint */}
-            {!showPhotoPreview && (
-              <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-lg text-xs text-white font-medium whitespace-nowrap">
-                Tap capture to take photo
-              </div>
-            )}
           </div>
         </div>
-
-        {/* Camera Preview Thumbnail (in corner) */}
-        {capturedPhoto && showPhotoPreview && (
-          <div className="absolute bottom-28 left-4 w-16 h-16 border-2 border-white/30 rounded-lg overflow-hidden shadow-lg">
-            <img
-              src={capturedPhoto}
-              alt="Preview"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        )}
-
-        {/* Camera Guide Frame */}
-        {!showPhotoPreview && isCameraActive && (
-          <div className="absolute top-20 bottom-32 left-8 right-8 pointer-events-none">
-            {/* Face Guide Box */}
-            <div className="border-2 border-[#C68E2D]/50 rounded-lg p-8 bg-black/10 backdrop-blur-sm">
-              {/* Guide Circles */}
-              <div className="absolute -top-4 -left-4 w-8 h-8 border border-[#C68E2D]/30 rounded-full" />
-              <div className="absolute -top-4 -right-4 w-8 h-8 border border-[#C68E2D]/30 rounded-full" />
-              <div className="absolute -bottom-4 -left-4 w-8 h-8 border border-[#C68E2D]/30 rounded-full" />
-              <div className="absolute -bottom-4 -right-4 w-8 h-8 border border-[#C68E2D]/30 rounded-full" />
-            </div>
-          </div>
-        )}
-
-        {/* Camera Settings Panel */}
-        {!showPhotoPreview && isCameraActive && (
-          <div className="absolute top-20 right-4 bg-black/70 backdrop-blur-md rounded-2xl p-4 z-30">
-            <div className="flex flex-col space-y-3">
-              <h4 className="text-white text-sm font-bold flex items-center">
-                <CameraOff className="w-4 h-4 mr-2" />
-                Camera Settings
-              </h4>
-              <div className="h-px bg-white/20" />
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between text-white/90">
-                  <span>Resolution</span>
-                  <span className="text-white">1280x720</span>
-                </div>
-                <div className="flex items-center justify-between text-white/90">
-                  <span>Aspect Ratio</span>
-                  <span className="text-white">16:9</span>
-                </div>
-                <div className="flex items-center justify-between text-white/90">
-                  <span>Frame Rate</span>
-                  <span className="text-white">30fps</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
