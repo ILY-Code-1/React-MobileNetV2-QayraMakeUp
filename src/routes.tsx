@@ -5,12 +5,13 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/users/DashboardPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AnalysisPage from './pages/admin/AnalysisPage';
-import AnalysisDetailPage from './pages/admin/AnalysisDetailPage';
+import AdminAnalysisDetailPage from './pages/admin/AnalysisDetailPage';
 import UsersPage from './pages/admin/UsersPage';
 import AddUserPage from './pages/admin/AddUserPage';
 import EditUserPage from './pages/admin/EditUserPage';
 import CameraPage from './pages/users/CameraPage';
 import RiwayatPage from './pages/users/RiwayatPage';
+import UserAnalysisDetailPage from './pages/users/AnalysisDetailPage';
 import MobileContainer from './layouts/MobileContainer';
 import AppLayout from './layouts/AppLayout';
 
@@ -74,6 +75,7 @@ export const AppRoutes: React.FC = () => {
         {/* Camera and History routes */}
         <Route path="camera" element={<CameraPage />} />
         <Route path="riwayat" element={<RiwayatPage />} />
+        <Route path="riwayat/:id" element={<UserAnalysisDetailPage />} />
 
         {/* Analysis and Users routes */}
         <Route path="analysis" element={<AnalysisPage />} />
@@ -86,7 +88,7 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute>
             <MobileContainer>
-              <AnalysisDetailPage />
+              <AdminAnalysisDetailPage />
             </MobileContainer>
           </ProtectedRoute>
         }

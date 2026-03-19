@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, History, Search, ArrowRight } from 'lucide-react';
 import { useAnalysisStore } from '../../store/analysisStore';
 import { useAuthStore } from '../../store/authStore';
@@ -13,6 +14,7 @@ const getResultColor = (result?: string) => {
 };
 
 const RiwayatPage: React.FC = () => {
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const analyses = useAnalysisStore((state) => state.analyses);
   const loading = useAnalysisStore((state) => state.loading);
@@ -87,6 +89,7 @@ const RiwayatPage: React.FC = () => {
                       </td>
                       <td className="px-4 py-5 rounded-r-2xl text-right">
                         <button
+                          onClick={() => navigate(`/riwayat/${item.id}`)}
                           className="bg-black text-white p-2.5 rounded-xl hover:bg-[#C68E2D] transition-all shadow-md active:scale-90 flex items-center justify-center ml-auto"
                           title="Lihat Detail"
                         >

@@ -12,6 +12,9 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.18",
+    "@tensorflow/tfjs": "^4.22.0",
+    "@tensorflow/tfjs-backend-webgl": "^4.22.0",
+    "@tensorflow/tfjs-converter": "^4.22.0",
     "firebase": "^12.10.0",
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",

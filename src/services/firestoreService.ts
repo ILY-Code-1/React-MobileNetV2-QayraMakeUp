@@ -48,6 +48,17 @@ export interface AnalysisData {
   result?: string;
   imageUrl?: string;
   createdAt?: string;
+
+  // ML Result fields
+  modelOutputRaw?: number[];
+  predictedLabel?: string;
+  predictedLabelDisplay?: string;
+  confidenceScore?: number;
+  generatedSummary?: string;
+  clinicalNotes?: string;
+
+  // Admin notes
+  catatan_qayra?: string;
 }
 
 // ============================================================================

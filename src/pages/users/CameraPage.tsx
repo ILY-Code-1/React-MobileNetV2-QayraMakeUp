@@ -1,12 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, RotateCcw, Zap, Flashlight, Check, SwitchCamera } from 'lucide-react';
+import { Camera, Upload, RotateCcw, Zap, Flashlight, Check, SwitchCamera, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { useAuthStore } from '../../store/authStore';
+import { useAnalysisStore } from '../../store/analysisStore';
+import { tfliteService } from '../../services/tfliteService';
 
 const CameraPage: React.FC = () => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const user = useAuthStore((state) => state.user);
+  const addAnalysis = useAnalysisStore((state) => state.addAnalysis);
 
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [, setIsCapturing] = useState(false);
@@ -15,6 +21,7 @@ const CameraPage: React.FC = () => {
   const [isFlashOn, setIsFlashOn] = useState(false);
   const [showPhotoPreview, setShowPhotoPreview] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Request camera permissions
   useEffect(() => {
@@ -139,22 +146,88 @@ const CameraPage: React.FC = () => {
     }
   };
 
-  const handleConfirmPhoto = () => {
-    // In real app, upload photo to server
-    Swal.fire({
-      icon: 'success',
-      title: 'Foto Berhasil!',
-      text: 'Foto telah disimpan dan siap dianalisis.',
-      confirmButtonColor: '#C68E2D',
-    }).then(() => {
+  const handleConfirmPhoto = async () => {
+    if (!capturedPhoto || !user) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Foto atau data user tidak tersedia.',
+        confirmButtonColor: '#C68E2D',
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Show loading
+      Swal.fire({
+        title: 'Menganalisis...',
+        text: 'Mohon tunggu, sistem sedang memproses gambar Anda.',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      // Run TFLite inference
+      const inferenceResult = await tfliteService.analyzeImage(capturedPhoto);
+
+      // Save to Firestore
+      const newAnalysis = await addAnalysis({
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        eventDate: user.eventDate,
+        imageUrl: capturedPhoto,
+        result: inferenceResult.predictedLabelDisplay,
+        modelOutputRaw: inferenceResult.modelOutputRaw,
+        predictedLabel: inferenceResult.predictedLabel,
+        confidenceScore: inferenceResult.confidenceScore,
+        generatedSummary: inferenceResult.generatedSummary,
+        clinicalNotes: inferenceResult.clinicalNotes,
+        catatan_qayra: '',
+      });
+
+      // Close loading and show success
+      Swal.fire({
+        icon: 'success',
+        title: 'Analisis Selesai!',
+        text: 'Hasil analisis kulit wajah Anda telah tersimpan.',
+        confirmButtonColor: '#C68E2D',
+      }).then(() => {
+        // Navigate to detail page
+        navigate(`/riwayat/${newAnalysis.id}`);
+      });
+    } catch (error) {
+      console.error('Error during analysis:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menganalisis',
+        text: error instanceof Error ? error.message : 'Terjadi kesalahan saat memproses gambar. Silakan coba lagi.',
+        confirmButtonColor: '#C68E2D',
+      });
+    } finally {
+      setIsProcessing(false);
       setShowPhotoPreview(false);
       setCapturedPhoto(null);
-      navigate('/riwayat');
-    });
+    }
   };
 
   return (
     <div className="relative h-full bg-black">
+      {/* Processing Overlay */}
+      {isProcessing && (
+        <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center backdrop-blur-sm">
+          <div className="text-center">
+            <Loader2 className="w-16 h-16 text-[#C68E2D] animate-spin mx-auto mb-4" />
+            <p className="text-white font-bold text-lg">Menganalisis...</p>
+            <p className="text-gray-400 text-sm mt-2">Mohon tunggu sebentar</p>
+          </div>
+        </div>
+      )}
+
       {/* Video Container */}
       <div className="relative h-full">
         {/* Camera Feed */}

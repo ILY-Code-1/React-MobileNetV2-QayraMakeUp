@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, Download, Trash2, Save, Activity, BarChart3, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Calendar, Activity, BarChart3, Image as ImageIcon } from 'lucide-react';
 import qayraIcon from '../../assets/qayra-icon.png';
-import { getAnalysisById, type AnalysisData } from '../../services/firestoreService';
-import { updateDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { getAnalysisById } from '../../services/firestoreService';
+import type { AnalysisData } from '../../services/firestoreService';
 import { OUTPUT_INDEX_MAPPING } from '../../utils/mlConfig';
-import Swal from 'sweetalert2';
 
 const AnalysisDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -14,116 +12,17 @@ const AnalysisDetailPage: React.FC = () => {
 
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [catatanQayra, setCatatanQayra] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     getAnalysisById(id)
-      .then((data: AnalysisData | null) => {
-        setAnalysisData(data);
-        if (data?.catatan_qayra) {
-          setCatatanQayra(data.catatan_qayra);
-        }
-      })
+      .then((data: AnalysisData | null) => setAnalysisData(data))
       .catch(() => setAnalysisData(null))
       .finally(() => setLoading(false));
   }, [id]);
 
   const handleBack = () => {
-    navigate('/analysis');
-  };
-
-  const handleDownload = () => {
-    Swal.fire({
-      title: 'Download Hasil Analisis',
-      text: 'Fitur download belum tersedia saat ini.',
-      icon: 'info',
-      confirmButtonText: 'OK',
-      confirmButtonColor: '#C68E2D',
-      customClass: { popup: 'swal2-popup' },
-    });
-  };
-
-  const handleSaveNotes = async () => {
-    if (!id) return;
-
-    setIsSaving(true);
-    try {
-      await updateDoc(doc(db, 'analysis_qayra', id), {
-        catatan_qayra: catatanQayra,
-        updatedAt: new Date().toISOString(),
-      });
-
-      // Update local state
-      if (analysisData) {
-        setAnalysisData({
-          ...analysisData,
-          catatan_qayra: catatanQayra,
-        });
-      }
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Catatan Tersimpan',
-        text: 'Catatan Qayra berhasil disimpan.',
-        confirmButtonColor: '#C68E2D',
-      });
-    } catch (error) {
-      console.error('Error saving notes:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal Menyimpan',
-        text: 'Terjadi kesalahan saat menyimpan catatan.',
-        confirmButtonColor: '#C68E2D',
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!id) return;
-
-    const result = await Swal.fire({
-      title: 'Hapus Analisis?',
-      text: 'Apakah Anda yakin ingin menghapus data analisis ini? Tindakan ini tidak dapat dibatalkan.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Ya, Hapus',
-      cancelButtonText: 'Batal',
-    });
-
-    if (result.isConfirmed) {
-      setIsDeleting(true);
-      try {
-        // Import deleteAnalysis from firestoreService
-        const { deleteAnalysis } = await import('../../services/firestoreService');
-        await deleteAnalysis(id);
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Terhapus!',
-          text: 'Data analisis berhasil dihapus.',
-          confirmButtonColor: '#C68E2D',
-        }).then(() => {
-          navigate('/analysis');
-        });
-      } catch (error) {
-        console.error('Error deleting analysis:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Gagal Menghapus',
-          text: 'Terjadi kesalahan saat menghapus data.',
-          confirmButtonColor: '#C68E2D',
-        });
-      } finally {
-        setIsDeleting(false);
-      }
-    }
+    navigate('/riwayat');
   };
 
   const getConfidenceColor = (score?: number) => {
@@ -202,7 +101,7 @@ const AnalysisDetailPage: React.FC = () => {
               <img src={qayraIcon} alt="QAYRA" className="w-full h-full object-contain" />
             </div>
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest border-2 border-[#C68E2D]">
-              {analysisData.result ?? 'Completed'}
+              {analysisData.predictedLabelDisplay || 'Completed'}
             </div>
           </div>
           <div className="text-center space-y-1">
@@ -326,67 +225,6 @@ const AnalysisDetailPage: React.FC = () => {
               </div>
             </div>
           )}
-
-          {/* Catatan Qayra Form */}
-          <div className="bg-[#C68E2D]/10 rounded-4xl p-8 border border-[#C68E2D]/20 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-            <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em] mb-6 text-center">Catatan Qayra</h2>
-            <div className="space-y-4">
-              <textarea
-                value={catatanQayra}
-                onChange={(e) => setCatatanQayra(e.target.value)}
-                placeholder="Tulis catatan untuk analisis ini..."
-                className="w-full h-32 px-4 py-3 rounded-xl border border-gray-300 focus:border-[#C68E2D] focus:ring-2 focus:ring-[#C68E2D]/20 outline-none resize-none text-gray-800"
-              />
-              <button
-                type="button"
-                onClick={handleSaveNotes}
-                disabled={isSaving}
-                className="w-full bg-[#C68E2D] text-white font-black text-sm py-4 rounded-xl border-2 border-[#C68E2D] hover:bg-[#B77E29] focus:outline-none focus:ring-4 focus:ring-[#C68E2D]/20 active:scale-[0.98] transition-all uppercase tracking-[0.3em] shadow-xl flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <>
-                    <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />
-                    <span>Menyimpan...</span>
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-5 h-5" />
-                    <span>Simpan Catatan</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              type="button"
-              onClick={handleDownload}
-              className="bg-black text-white font-black text-sm py-5 rounded-2xl border-2 border-white/10 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-black/10 active:scale-[0.98] transition-all uppercase tracking-[0.3em] shadow-xl flex items-center justify-center space-x-3"
-            >
-              <Download className="w-5 h-5" />
-              <span>Download</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="bg-red-600 text-white font-black text-sm py-5 rounded-2xl border-2 border-red-700 hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-600/20 active:scale-[0.98] transition-all uppercase tracking-[0.3em] shadow-xl flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isDeleting ? (
-                <>
-                  <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />
-                  <span>Menghapus...</span>
-                </>
-              ) : (
-                <>
-                  <Trash2 className="w-5 h-5" />
-                  <span>Hapus</span>
-                </>
-              )}
-            </button>
-          </div>
 
           {/* Analysis Date */}
           {analysisData.createdAt && !isNaN(new Date(analysisData.createdAt).getTime()) && (
