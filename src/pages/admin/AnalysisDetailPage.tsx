@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, Download, Trash2, Save, Activity, BarChart3, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Calendar, Download, Trash2, Save, Activity, BarChart3, Image as ImageIcon, Loader2 } from 'lucide-react';
 import qayraIcon from '../../assets/qayra-icon.png';
 import { getAnalysisById, type AnalysisData } from '../../services/firestoreService';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { OUTPUT_INDEX_MAPPING } from '../../utils/mlConfig';
+import { generateAnalysisPDF } from '../../utils/pdfGenerator';
 import Swal from 'sweetalert2';
 
 const AnalysisDetailPage: React.FC = () => {
@@ -17,6 +18,7 @@ const AnalysisDetailPage: React.FC = () => {
   const [catatanQayra, setCatatanQayra] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -35,15 +37,42 @@ const AnalysisDetailPage: React.FC = () => {
     navigate('/analysis');
   };
 
-  const handleDownload = () => {
-    Swal.fire({
-      title: 'Download Hasil Analisis',
-      text: 'Fitur download belum tersedia saat ini.',
-      icon: 'info',
-      confirmButtonText: 'OK',
-      confirmButtonColor: '#C68E2D',
-      customClass: { popup: 'swal2-popup' },
-    });
+  const handleDownload = async () => {
+    if (!analysisData) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Data analisis tidak tersedia.',
+        confirmButtonColor: '#C68E2D',
+      });
+      return;
+    }
+
+    setIsDownloading(true);
+
+    try {
+      await generateAnalysisPDF(analysisData, {
+        includeImage: true,
+        fileName: `analysis-${analysisData.id}`,
+      });
+
+      Swal.fire({
+        icon: 'success',
+        title: 'PDF Berhasil Diunduh',
+        text: 'Laporan analisis telah berhasil diunduh.',
+        confirmButtonColor: '#C68E2D',
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Mengunduh',
+        text: error instanceof Error ? error.message : 'Terjadi kesalahan saat membuat PDF.',
+        confirmButtonColor: '#C68E2D',
+      });
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleSaveNotes = async () => {
@@ -365,8 +394,17 @@ const AnalysisDetailPage: React.FC = () => {
               onClick={handleDownload}
               className="bg-black text-white font-black text-sm py-5 rounded-2xl border-2 border-white/10 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-black/10 active:scale-[0.98] transition-all uppercase tracking-[0.3em] shadow-xl flex items-center justify-center space-x-3"
             >
-              <Download className="w-5 h-5" />
-              <span>Download</span>
+              {isDownloading ? (
+                <>
+                  <Loader2 className="w-5 h-5" />
+                  <span>Wait...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-5 h-5" />
+                  <span>Download</span>
+                </>
+              )}
             </button>
             <button
               type="button"

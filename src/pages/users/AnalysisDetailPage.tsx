@@ -226,6 +226,16 @@ const AnalysisDetailPage: React.FC = () => {
             </div>
           )}
 
+          {/* Catatan Qayra Card */}
+          <div className="bg-[#C68E2D]/10 rounded-4xl p-8 border border-[#C68E2D]/20 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+            <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em] mb-6 text-center">Catatan Qayra</h2>
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/40">
+              <p className="text-base font-bold text-gray-800 leading-relaxed">
+                {analysisData.catatan_qayra || '-'}
+              </p>
+            </div>
+          </div>
+
           {/* Analysis Date */}
           {analysisData.createdAt && !isNaN(new Date(analysisData.createdAt).getTime()) && (
             <div className="text-center">
