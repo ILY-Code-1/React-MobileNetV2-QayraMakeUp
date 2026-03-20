@@ -230,7 +230,7 @@ const AnalysisDetailPage: React.FC = () => {
             <div className="w-32 h-32 bg-white rounded-full p-1 border-4 border-[#C68E2D] shadow-2xl overflow-hidden">
               <img src={qayraIcon} alt="QAYRA" className="w-full h-full object-contain" />
             </div>
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest border-2 border-[#C68E2D]">
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 items-center justify-center text-center bg-black text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest border-2 border-[#C68E2D]">
               {analysisData.predictedLabelDisplay || analysisData.result || 'Completed'}
             </div>
           </div>

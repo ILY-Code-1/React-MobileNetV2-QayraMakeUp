@@ -90,7 +90,7 @@ const RiwayatPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-4 py-5 text-center">
-                        <span className={`text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm ${getResultColor(item.result, item.predictedLabelDisplay)}`}>
+                        <span className={`whitespace-nowrap text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm ${getResultColor(item.result, item.predictedLabelDisplay)}`}>
                           {item.result || item.predictedLabelDisplay || 'Selesai'}
                         </span>
                       </td>
