@@ -4,11 +4,18 @@ import { Calendar, Clock, History, Search, ArrowRight } from 'lucide-react';
 import { useAnalysisStore } from '../../store/analysisStore';
 import { useAuthStore } from '../../store/authStore';
 
-const getResultColor = (result?: string) => {
-  switch (result) {
+const getResultColor = (result?: string, predictedLabelDisplay?: string) => {
+  const displayResult = result || predictedLabelDisplay || 'Selesai';
+  
+  switch (displayResult) {
     case 'Healthy': return 'bg-green-100 text-green-800';
     case 'Improvement': return 'bg-blue-100 text-blue-800';
     case 'Needs Attention': return 'bg-yellow-100 text-yellow-800';
+    case 'Acne-Prone Skin': return 'bg-red-100 text-red-800';
+    case 'Dry Skin': return 'bg-yellow-100 text-yellow-800';
+    case 'Normal Skin': return 'bg-green-100 text-green-800';
+    case 'Oily Skin': return 'bg-orange-100 text-orange-800';
+    case 'Sensitive Skin': return 'bg-pink-100 text-pink-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };
@@ -83,8 +90,8 @@ const RiwayatPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-4 py-5 text-center">
-                        <span className={`text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm ${getResultColor(item.result)}`}>
-                          {item.result ?? 'Selesai'}
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm ${getResultColor(item.result, item.predictedLabelDisplay)}`}>
+                          {item.result || item.predictedLabelDisplay || 'Selesai'}
                         </span>
                       </td>
                       <td className="px-4 py-5 rounded-r-2xl text-right">

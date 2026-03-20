@@ -78,7 +78,6 @@ export const encryptUserData = (userData: UserData): string => {
   const jsonString = JSON.stringify(dataToEncode);
   const encrypted = xorEncrypt(jsonString, SECRET_KEY);
 
-  console.log('[CookieHelper] User data encrypted');
   return encrypted;
 };
 
@@ -89,8 +88,6 @@ export const decryptUserData = (encryptedData: string): UserData | null => {
   try {
     const decrypted = xorDecrypt(encryptedData, SECRET_KEY);
     const decodedData = JSON.parse(decrypted) as EncodedUserData;
-
-    console.log('[CookieHelper] User data decrypted');
 
     return {
       ...decodedData,
@@ -116,7 +113,6 @@ export const setCookie = (userData: UserData): void => {
     const cookieString = `${COOKIE_KEY}=${encryptedData}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
 
     document.cookie = cookieString;
-    console.log('[CookieHelper] User data saved to cookie');
   } catch (error) {
     console.error('[CookieHelper] Error setting cookie:', error);
   }
@@ -137,7 +133,6 @@ export const getCookie = (): UserData | null => {
       }
     }
 
-    console.log('[CookieHelper] No user cookie found');
     return null;
   } catch (error) {
     console.error('[CookieHelper] Error getting cookie:', error);
@@ -153,7 +148,6 @@ export const removeCookie = (): void => {
     const cookieString = `${COOKIE_KEY}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
 
     document.cookie = cookieString;
-    console.log('[CookieHelper] User data removed from cookie');
   } catch (error) {
     console.error('[CookieHelper] Error removing cookie:', error);
   }

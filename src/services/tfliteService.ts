@@ -4,14 +4,72 @@
 
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
-import {
-  MODEL_PATH,
-  MODEL_INPUT_SIZE,
-  OUTPUT_INDEX_MAPPING,
-  CLASSIFICATION_CONFIG,
-  RESULT_GENERATION_ENGINE,
-  type InferenceResult,
-} from '../utils/mlConfig';
+import type { InferenceResult } from '../utils/mlConfig';
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface MLConfig {
+  system_info: {
+    system_name: string;
+    version: string;
+    expected_model_output: {
+      type: string;
+      length: number;
+      format_example: number[];
+      selection_method: string;
+    };
+  };
+  classification_config: {
+    secondary_threshold: number;
+    tertiary_threshold: number;
+    dominance_gap_threshold: number;
+    confidence_levels: {
+      high: { min: number; max: number };
+      moderate: { min: number; max: number };
+      low: { min: number; max: number };
+      uncertain: { min: number; max: number };
+    };
+  };
+  output_index_mapping: Record<string, {
+    key: string;
+    label: string;
+    index: number;
+  }>;
+  result_generation_engine: {
+    summary_templates: {
+      single_dominant: string;
+      dual_blend: string;
+      multi_blend: string;
+    };
+    clinical_style_notes: {
+      high: string;
+      moderate: string;
+      low: string;
+      uncertain: string;
+    };
+  };
+  classes: Record<string, {
+    index: number;
+    severity_weight: number;
+    probability_source: string;
+    clinical_focus: string;
+    treatment_priority_if_high: string[];
+    preparation_protocol: {
+      '7_days_before': string[];
+      '3_days_before': string[];
+      day_of_makeup: string[];
+    };
+  }>;
+}
+
+interface TopClass {
+  key: string;
+  label: string;
+  probability: number;
+  rank: number;
+}
 
 // ============================================================================
 // SERVICE CLASS
@@ -22,46 +80,56 @@ class TFLiteService {
   private isModelLoaded = false;
   private isInitializing = false;
   private useMockMode = false; // Set to true if model loading fails
+  private mlConfig: MLConfig | null = null;
+
+  /**
+   * Load ML config from JSON file
+   */
+  private async loadMLConfig(): Promise<void> {
+    try {
+      const response = await fetch('/ml-config.json');
+      this.mlConfig = await response.json();
+    } catch (error) {
+      throw new Error('Gagal memuat konfigurasi ML');
+    }
+  }
 
   /**
    * Initialize and load TFJS model
    */
   async initialize(): Promise<void> {
     if (this.isModelLoaded) {
-      console.log('[TFLiteService] Model already loaded');
       return;
     }
 
     if (this.isInitializing) {
-      console.log('[TFLiteService] Model is already initializing');
       return;
     }
 
     this.isInitializing = true;
-    console.log('[TFLiteService] Initializing...');
 
     try {
+      // Load ML config first
+      await this.loadMLConfig();
+
       // Set backend to WebGL for better performance
       await tf.setBackend('webgl');
       await tf.ready();
-      console.log('[TFLiteService] Backend:', tf.getBackend());
 
       // Try to load TFJS model
       try {
-        console.log('[TFLiteService] Loading model from:', MODEL_PATH);
-        this.model = await tf.loadGraphModel(MODEL_PATH);
+        this.model = await tf.loadGraphModel('/skin_condition.tflite');
         this.isModelLoaded = true;
-        console.log('[TFLiteService] Model loaded successfully as TFJS GraphModel');
         this.useMockMode = false;
       } catch (loadError) {
-        console.warn('[TFLiteService] Could not load model:', loadError);
-        console.warn('[TFLiteService] Falling back to mock mode for demonstration');
+        // Enable mock mode for development/testing
         this.useMockMode = true;
-        this.isModelLoaded = true; // Consider "loaded" in mock mode
+        this.isModelLoaded = true;
       }
+
+      this.isModelLoaded = true;
     } catch (error) {
-      console.error('[TFLiteService] Error initializing:', error);
-      throw error instanceof Error ? error : new Error('Gagal menginisialisasi service.');
+      throw error instanceof Error ? error : new Error('Gagal memuat model TFLite. Silakan refresh halaman.');
     } finally {
       this.isInitializing = false;
     }
@@ -71,7 +139,7 @@ class TFLiteService {
    * Check if model is loaded
    */
   isReady(): boolean {
-    return this.isModelLoaded;
+    return this.isModelLoaded && this.model !== null;
   }
 
   /**
@@ -83,7 +151,7 @@ class TFLiteService {
     let tensor = tf.browser.fromPixels(imageData, 3); // 3 channels (RGB)
 
     // Resize to 224x224
-    tensor = tf.image.resizeBilinear(tensor, [MODEL_INPUT_SIZE, MODEL_INPUT_SIZE]);
+    tensor = tf.image.resizeBilinear(tensor, [224, 224]);
 
     // Convert to float32
     tensor = tensor.toFloat();
@@ -105,13 +173,16 @@ class TFLiteService {
       await this.initialize();
     }
 
+    if (!this.model && !this.useMockMode) {
+      throw new Error('Model tidak tersedia');
+    }
+
     try {
       let probabilities: number[];
 
-      if (this.useMockMode || !this.model) {
+      if (this.useMockMode || !this.mlConfig) {
         // Mock mode - generate realistic random probabilities
         probabilities = this.generateMockProbabilities();
-        console.log('[TFLiteService] Using mock mode for inference');
       } else {
         // Real inference
         const inputTensor = await this.preprocessImage(imageData);
@@ -168,13 +239,19 @@ class TFLiteService {
    * Process model output and generate readable results
    */
   private processOutput(probabilities: number[]): InferenceResult {
+    if (!this.mlConfig) {
+      throw new Error('ML config not loaded');
+    }
+
+    const config = this.mlConfig;
+
     // Find predicted class using argmax
     const maxIndex = probabilities.indexOf(Math.max(...probabilities));
-    const predictedClass = OUTPUT_INDEX_MAPPING[maxIndex.toString()];
+    const predictedClass = config.output_index_mapping[maxIndex.toString()];
     const confidenceScore = probabilities[maxIndex];
 
     // Determine confidence level
-    const confidenceLevel = this.getConfidenceLevel(confidenceScore);
+    const confidenceLevel = this.getConfidenceLevel(confidenceScore, config.classification_config.confidence_levels);
 
     // Sort probabilities descending
     const sortedIndices = probabilities
@@ -182,10 +259,17 @@ class TFLiteService {
       .sort((a, b) => b.prob - a.prob);
 
     // Generate summary based on distribution
-    const summary = this.generateSummary(sortedIndices, confidenceLevel);
+    const summaryType = this.getSummaryType(sortedIndices, config.classification_config);
+    const summary = this.generateSummary(sortedIndices, confidenceLevel, summaryType, config.result_generation_engine.summary_templates);
 
     // Get clinical notes
-    const clinicalNotes = RESULT_GENERATION_ENGINE.clinicalStyleNotes[confidenceLevel];
+    const clinicalNotes = config.result_generation_engine.clinical_style_notes[confidenceLevel];
+
+    // Get class details
+    const classDetails = config.classes[predictedClass.key];
+
+    // Get top classes
+    const topClasses = this.getTopClasses(probabilities, config.output_index_mapping);
 
     return {
       modelOutputRaw: probabilities,
@@ -195,6 +279,14 @@ class TFLiteService {
       confidenceLevel,
       generatedSummary: summary,
       clinicalNotes,
+      summaryType,
+      primaryClass: predictedClass.key,
+      secondaryClass: sortedIndices[1] ? config.output_index_mapping[sortedIndices[1].index.toString()].key : undefined,
+      tertiaryClass: sortedIndices[2] ? config.output_index_mapping[sortedIndices[2].index.toString()].key : undefined,
+      clinicalFocus: classDetails.clinical_focus,
+      treatmentPriority: classDetails.treatment_priority_if_high,
+      preparationProtocol: classDetails.preparation_protocol,
+      topClasses,
     };
   }
 
@@ -202,14 +294,35 @@ class TFLiteService {
    * Determine confidence level based on score
    */
   private getConfidenceLevel(
-    score: number
+    score: number,
+    confidenceLevels: MLConfig['classification_config']['confidence_levels']
   ): 'high' | 'moderate' | 'low' | 'uncertain' {
-    const levels = CLASSIFICATION_CONFIG.confidenceLevels;
-
-    if (score >= levels.high.min && score <= levels.high.max) return 'high';
-    if (score >= levels.moderate.min && score <= levels.moderate.max) return 'moderate';
-    if (score >= levels.low.min && score <= levels.low.max) return 'low';
+    if (score >= confidenceLevels.high.min && score <= confidenceLevels.high.max) return 'high';
+    if (score >= confidenceLevels.moderate.min && score <= confidenceLevels.moderate.max) return 'moderate';
+    if (score >= confidenceLevels.low.min && score <= confidenceLevels.low.max) return 'low';
     return 'uncertain';
+  }
+
+  /**
+   * Determine summary type based on probability distribution
+   */
+  private getSummaryType(
+    sortedIndices: { prob: number; index: number }[],
+    config: MLConfig['classification_config']
+  ): 'single_dominant' | 'dual_blend' | 'multi_blend' {
+    const primary = sortedIndices[0];
+    const secondary = sortedIndices[1];
+    const tertiary = sortedIndices[2];
+
+    if (primary.prob - secondary.prob >= config.dominance_gap_threshold) {
+      return 'single_dominant';
+    } else if (secondary.prob >= config.secondary_threshold) {
+      return 'dual_blend';
+    } else if (tertiary.prob >= config.tertiary_threshold) {
+      return 'multi_blend';
+    } else {
+      return 'single_dominant';
+    }
   }
 
   /**
@@ -217,41 +330,38 @@ class TFLiteService {
    */
   private generateSummary(
     sortedIndices: { prob: number; index: number }[],
-    confidenceLevel: string
+    confidenceLevel: string,
+    summaryType: string,
+    templates: MLConfig['result_generation_engine']['summary_templates']
   ): string {
+    if (!this.mlConfig) return '';
+
+    const config = this.mlConfig;
     const primary = sortedIndices[0];
     const secondary = sortedIndices[1];
     const tertiary = sortedIndices[2];
 
-    const primaryLabel = OUTPUT_INDEX_MAPPING[primary.index.toString()].label;
-    const secondaryLabel = OUTPUT_INDEX_MAPPING[secondary.index.toString()].label;
-    const tertiaryLabel = OUTPUT_INDEX_MAPPING[tertiary.index.toString()].label;
+    const primaryLabel = config.output_index_mapping[primary.index.toString()].label;
+    const secondaryLabel = config.output_index_mapping[secondary.index.toString()].label;
+    const tertiaryLabel = config.output_index_mapping[tertiary.index.toString()].label;
 
     const confidenceLevelDisplay = this.getConfidenceLevelDisplay(confidenceLevel);
 
     // Determine which template to use
-    if (primary.prob - secondary.prob >= CLASSIFICATION_CONFIG.dominanceGapThreshold) {
-      // Single dominant
-      return RESULT_GENERATION_ENGINE.summaryTemplates.singleDominant
+    if (summaryType === 'single_dominant') {
+      return templates.single_dominant
         .replace('{primary_label}', primaryLabel)
         .replace('{confidence_level}', confidenceLevelDisplay);
-    } else if (secondary.prob >= CLASSIFICATION_CONFIG.secondaryThreshold) {
-      // Dual blend
-      return RESULT_GENERATION_ENGINE.summaryTemplates.dualBlend
+    } else if (summaryType === 'dual_blend') {
+      return templates.dual_blend
         .replace('{primary_label}', primaryLabel)
         .replace('{secondary_label}', secondaryLabel)
         .replace('{confidence_level}', confidenceLevelDisplay);
-    } else if (tertiary.prob >= CLASSIFICATION_CONFIG.tertiaryThreshold) {
-      // Multi blend
-      return RESULT_GENERATION_ENGINE.summaryTemplates.multiBlend
+    } else {
+      return templates.multi_blend
         .replace('{primary_label}', primaryLabel)
         .replace('{secondary_label}', secondaryLabel)
         .replace('{tertiary_label}', tertiaryLabel);
-    } else {
-      // Default to single dominant
-      return RESULT_GENERATION_ENGINE.summaryTemplates.singleDominant
-        .replace('{primary_label}', primaryLabel)
-        .replace('{confidence_level}', confidenceLevelDisplay);
     }
   }
 
@@ -271,6 +381,25 @@ class TFLiteService {
       default:
         return 'Tidak Diketahui';
     }
+  }
+
+  /**
+   * Get top classes ranked by probability
+   */
+  private getTopClasses(
+    probabilities: number[],
+    indexMapping: MLConfig['output_index_mapping']
+  ): TopClass[] {
+    const sorted = probabilities
+      .map((prob, index) => ({ prob, index }))
+      .sort((a, b) => b.prob - a.prob);
+
+    return sorted.slice(0, 5).map((item, rank) => ({
+      key: indexMapping[item.index.toString()].key,
+      label: indexMapping[item.index.toString()].label,
+      probability: item.prob,
+      rank: rank + 1,
+    }));
   }
 
   /**

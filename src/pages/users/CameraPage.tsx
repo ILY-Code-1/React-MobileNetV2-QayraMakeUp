@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { useAuthStore } from '../../store/authStore';
 import { useAnalysisStore } from '../../store/analysisStore';
 import { tfliteService } from '../../services/tfliteService';
+import type { InferenceResult } from '../../utils/mlConfig';
 
 const CameraPage: React.FC = () => {
   const navigate = useNavigate();
@@ -33,7 +34,6 @@ const CameraPage: React.FC = () => {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach((track) => {
           track.stop();
-          console.log('Camera track stopped');
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
         videoRef.current.srcObject = null;
@@ -171,10 +171,7 @@ const CameraPage: React.FC = () => {
         },
       });
 
-      // Run TFLite inference
-      const inferenceResult = await tfliteService.analyzeImage(capturedPhoto);
-
-      // Save to Firestore
+      const inferenceResult: InferenceResult = await tfliteService.analyzeImage(capturedPhoto);
       const newAnalysis = await addAnalysis({
         userId: user.id,
         name: user.name,
@@ -184,9 +181,18 @@ const CameraPage: React.FC = () => {
         result: inferenceResult.predictedLabelDisplay,
         modelOutputRaw: inferenceResult.modelOutputRaw,
         predictedLabel: inferenceResult.predictedLabel,
+        predictedLabelDisplay: inferenceResult.predictedLabelDisplay,
         confidenceScore: inferenceResult.confidenceScore,
         generatedSummary: inferenceResult.generatedSummary,
         clinicalNotes: inferenceResult.clinicalNotes,
+        summaryType: inferenceResult.summaryType,
+        primaryClass: inferenceResult.primaryClass,
+        secondaryClass: inferenceResult.secondaryClass,
+        tertiaryClass: inferenceResult.tertiaryClass,
+        clinicalFocus: inferenceResult.clinicalFocus,
+        treatmentPriority: inferenceResult.treatmentPriority,
+        preparationProtocol: inferenceResult.preparationProtocol,
+        topClasses: inferenceResult.topClasses,
         catatan_qayra: '',
       });
 

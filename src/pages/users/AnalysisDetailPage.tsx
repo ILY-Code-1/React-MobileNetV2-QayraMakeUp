@@ -6,20 +6,34 @@ import { getAnalysisById } from '../../services/firestoreService';
 import type { AnalysisData } from '../../services/firestoreService';
 import { OUTPUT_INDEX_MAPPING } from '../../utils/mlConfig';
 
+import { useAuthStore } from '../../store/authStore';
+
 const AnalysisDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const user = useAuthStore((state) => state.user);
 
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
     if (!id) return;
+
     getAnalysisById(id)
-      .then((data: AnalysisData | null) => setAnalysisData(data))
+      .then((data: AnalysisData | null) => {
+        // Validate userId
+        if (data && user && data.userId !== user.id) {
+          setAccessDenied(true);
+          setAnalysisData(null);
+        } else {
+          setAnalysisData(data);
+          setAccessDenied(false);
+        }
+      })
       .catch(() => setAnalysisData(null))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, user]);
 
   const handleBack = () => {
     navigate('/riwayat');
@@ -68,8 +82,17 @@ const AnalysisDetailPage: React.FC = () => {
         </div>
         <div className="flex-1 flex items-center justify-center px-6">
           <div className="text-center">
-            <p className="text-xl font-semibold text-gray-800 mb-2">Data Tidak Ditemukan</p>
-            <p className="text-gray-600 text-sm">Data analisis dengan ID {id} tidak ada</p>
+            {accessDenied ? (
+              <>
+                <p className="text-xl font-semibold text-red-600 mb-2">Akses Ditolak</p>
+                <p className="text-gray-600 text-sm">Anda tidak memiliki akses ke data analisis ini</p>
+              </>
+            ) : (
+              <>
+                <p className="text-xl font-semibold text-gray-800 mb-2">Data Tidak Ditemukan</p>
+                <p className="text-gray-600 text-sm">Data analisis dengan ID {id} tidak ada</p>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -101,7 +124,7 @@ const AnalysisDetailPage: React.FC = () => {
               <img src={qayraIcon} alt="QAYRA" className="w-full h-full object-contain" />
             </div>
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest border-2 border-[#C68E2D]">
-              {analysisData.predictedLabelDisplay || 'Completed'}
+              {analysisData.predictedLabelDisplay || analysisData.result || 'Completed'}
             </div>
           </div>
           <div className="text-center space-y-1">
@@ -172,6 +195,98 @@ const AnalysisDetailPage: React.FC = () => {
                 <p className="text-base font-bold text-gray-800 leading-relaxed">
                   {analysisData.clinicalNotes}
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* Clinical Focus Card */}
+          {analysisData.clinicalFocus && (
+            <div className="bg-[#C68E2D]/10 rounded-4xl p-8 border border-[#C68E2D]/20 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+              <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em] mb-6 text-center">Fokus Klinis</h2>
+              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/40">
+                <p className="text-base font-bold text-gray-800 leading-relaxed">
+                  {analysisData.clinicalFocus}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Treatment Priority Card */}
+          {analysisData.treatmentPriority && analysisData.treatmentPriority.length > 0 && (
+            <div className="bg-[#C68E2D]/10 rounded-4xl p-8 border border-[#C68E2D]/20 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+              <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em] mb-6 text-center">Prioritas Perawatan</h2>
+              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
+                <ul className="space-y-3">
+                  {analysisData.treatmentPriority.map((item, index) => (
+                    <li key={index} className="flex items-start space-x-3">
+                      <span className="flex-shrink-0 w-6 h-6 bg-[#C68E2D] text-white rounded-full flex items-center justify-center text-sm font-black">
+                        {index + 1}
+                      </span>
+                      <span className="text-base font-bold text-gray-800 leading-relaxed">
+                        {item}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* Preparation Protocol Card */}
+          {analysisData.preparationProtocol && (
+            <div className="bg-[#C68E2D]/10 rounded-4xl p-8 border border-[#C68E2D]/20 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+              <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em] mb-6 text-center">Protokol Persiapan</h2>
+              <div className="space-y-6">
+                {/* 7 Days Before */}
+                {analysisData.preparationProtocol['7_days_before'] && analysisData.preparationProtocol['7_days_before'].length > 0 && (
+                  <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
+                    <h3 className="text-sm font-black text-[#C68E2D] uppercase tracking-widest mb-4">7 Hari Sebelum</h3>
+                    <ul className="space-y-2">
+                      {analysisData.preparationProtocol['7_days_before'].map((item, index) => (
+                        <li key={index} className="flex items-start space-x-3">
+                          <div className="w-2 h-2 bg-[#C68E2D] rounded-full mt-2 flex-shrink-0" />
+                          <span className="text-sm font-bold text-gray-700 leading-relaxed">
+                            {item}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* 3 Days Before */}
+                {analysisData.preparationProtocol['3_days_before'] && analysisData.preparationProtocol['3_days_before'].length > 0 && (
+                  <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
+                    <h3 className="text-sm font-black text-[#C68E2D] uppercase tracking-widest mb-4">3 Hari Sebelum</h3>
+                    <ul className="space-y-2">
+                      {analysisData.preparationProtocol['3_days_before'].map((item, index) => (
+                        <li key={index} className="flex items-start space-x-3">
+                          <div className="w-2 h-2 bg-[#C68E2D] rounded-full mt-2 flex-shrink-0" />
+                          <span className="text-sm font-bold text-gray-700 leading-relaxed">
+                            {item}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Day of Makeup */}
+                {analysisData.preparationProtocol.day_of_makeup && analysisData.preparationProtocol.day_of_makeup.length > 0 && (
+                  <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
+                    <h3 className="text-sm font-black text-[#C68E2D] uppercase tracking-widest mb-4">Hari Makeup</h3>
+                    <ul className="space-y-2">
+                      {analysisData.preparationProtocol.day_of_makeup.map((item, index) => (
+                        <li key={index} className="flex items-start space-x-3">
+                          <div className="w-2 h-2 bg-[#C68E2D] rounded-full mt-2 flex-shrink-0" />
+                          <span className="text-sm font-bold text-gray-700 leading-relaxed">
+                            {item}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           )}

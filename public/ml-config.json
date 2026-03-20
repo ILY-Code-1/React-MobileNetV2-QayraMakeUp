@@ -1,0 +1,184 @@
+{
+  "system_info": {
+    "system_name": "AI Dermatology Grade System - Bride Skin Preparation",
+    "version": "2.0",
+    "expected_model_output": {
+      "type": "float_array",
+      "length": 5,
+      "format_example": [0.05, 0.70, 0.10, 0.10, 0.05],
+      "selection_method": "argmax"
+    }
+  },
+
+  "classification_config": {
+    "secondary_threshold": 0.25,
+    "tertiary_threshold": 0.15,
+    "dominance_gap_threshold": 0.20,
+    "confidence_levels": {
+      "high": { "min": 0.80, "max": 1.0 },
+      "moderate": { "min": 0.60, "max": 0.79 },
+      "low": { "min": 0.40, "max": 0.59 },
+      "uncertain": { "min": 0.0, "max": 0.39 }
+    }
+  },
+
+  "output_index_mapping": {
+    "0": { "key": "acne", "label": "Acne-Prone Skin", "index": 0 },
+    "1": { "key": "dry", "label": "Dry Skin", "index": 1 },
+    "2": { "key": "normal", "label": "Normal Skin", "index": 2 },
+    "3": { "key": "oily", "label": "Oily Skin", "index": 3 },
+    "4": { "key": "sensitive", "label": "Sensitive Skin", "index": 4 }
+  },
+
+  "result_generation_engine": {
+    "summary_templates": {
+      "single_dominant": "Kulit calon pengantin terdeteksi dominan {primary_label} dengan tingkat keyakinan {confidence_level}.",
+      "dual_blend": "Kulit calon pengantin menunjukkan kecenderungan {primary_label} dengan pengaruh {secondary_label}. Tingkat keyakinan: {confidence_level}.",
+      "multi_blend": "Kulit menunjukkan kombinasi kondisi {primary_label}, {secondary_label}, dan {tertiary_label}. Disarankan pendekatan perawatan kombinasi."
+    },
+    "clinical_style_notes": {
+      "high": "Analisis menunjukkan karakteristik kulit sangat konsisten.",
+      "moderate": "Karakteristik cukup jelas namun tetap memerlukan pendekatan fleksibel.",
+      "low": "Karakteristik kulit cenderung campuran dan memerlukan observasi tambahan.",
+      "uncertain": "Model mendeteksi pola tidak dominan, disarankan evaluasi manual tambahan."
+    }
+  },
+
+  "classes": {
+    "acne": {
+      "index": 0,
+      "severity_weight": 1.2,
+      "probability_source": "output_model[0]",
+      "clinical_focus": "Inflamasi, komedo, dan risiko iritasi saat layering makeup.",
+      "treatment_priority_if_high": [
+        "Fokus anti-inflamasi",
+        "Kontrol minyak tanpa over-drying",
+        "Stabilisasi skin barrier"
+      ],
+      "preparation_protocol": {
+        "7_days_before": [
+          "Cleanser dengan salicylic acid ringan",
+          "Serum niacinamide",
+          "Hindari ekstraksi agresif"
+        ],
+        "3_days_before": [
+          "Skincare calming",
+          "Hindari exfoliasi kuat"
+        ],
+        "day_of_makeup": [
+          "Soothing toner",
+          "Moisturizer oil-free",
+          "Primer non-comedogenic"
+        ]
+      }
+    },
+    "dry": {
+      "index": 1,
+      "severity_weight": 1.0,
+      "probability_source": "output_model[1]",
+      "clinical_focus": "Dehidrasi, tekstur kasar, dan potensi patchiness saat makeup.",
+      "treatment_priority_if_high": [
+        "Intensif hidrasi",
+        "Barrier repair",
+        "Hindari produk drying"
+      ],
+      "preparation_protocol": {
+        "7_days_before": [
+          "Hydrating toner",
+          "Serum hyaluronic acid",
+          "Sleeping mask"
+        ],
+        "3_days_before": [
+          "Essence yang kaya nutrisi",
+          "Hindari clay mask"
+        ],
+        "day_of_makeup": [
+          "Hydrating primer",
+          "Moisturizer kaya",
+          "Setting spray"
+        ]
+      }
+    },
+    "normal": {
+      "index": 2,
+      "severity_weight": 0.8,
+      "probability_source": "output_model[2]",
+      "clinical_focus": "Kulit seimbang dengan perawatan rutin yang tepat.",
+      "treatment_priority_if_high": [
+        "Pertahankan rutinitas",
+        "Light exfoliation",
+        "Hydration seimbang"
+      ],
+      "preparation_protocol": {
+        "7_days_before": [
+          "Cleanser lembut",
+          "Vitamin C serum",
+          "Sunscreen harian"
+        ],
+        "3_days_before": [
+          "Mask sheet",
+          "Hindari produk baru"
+        ],
+        "day_of_makeup": [
+          "Primer ringan",
+          "Foundation sesuai tone",
+          "Setting powder ringan"
+        ]
+      }
+    },
+    "oily": {
+      "index": 3,
+      "severity_weight": 1.1,
+      "probability_source": "output_model[3]",
+      "clinical_focus": "Produksi sebum berlebih, pori besar, dan potensi makeup cakey.",
+      "treatment_priority_if_high": [
+        "Kontrol sebum",
+        "Pore minimizer",
+        "Matte finish"
+      ],
+      "preparation_protocol": {
+        "7_days_before": [
+          "Cleanser untuk kulit berminyak",
+          "Niacinamide",
+          "Clay mask 2x seminggu"
+        ],
+        "3_days_before": [
+          "Oil-free moisturizer",
+          "Hindari produk occlusive"
+        ],
+        "day_of_makeup": [
+          "Mattifying primer",
+          "Foundation matte",
+          "Setting powder"
+        ]
+      }
+    },
+    "sensitive": {
+      "index": 4,
+      "severity_weight": 1.3,
+      "probability_source": "output_model[4]",
+      "clinical_focus": "Reaktivitas, kemerahan, mudah iritasi dengan produk tertentu.",
+      "treatment_priority_if_high": [
+        "Soothing ingredients",
+        "Anti-inflammatory",
+        "Hindari fragrance & alcohol"
+      ],
+      "preparation_protocol": {
+        "7_days_before": [
+          "Cleanser hypoallergenic",
+          "Centella asiatica",
+          "Hindari eksfoliasi"
+        ],
+        "3_days_before": [
+          "Mask calming",
+          "Hindari produk baru"
+        ],
+        "day_of_makeup": [
+          "Primer soothing",
+          "Foundation mineral",
+          "Hindari layering berlebihan"
+        ]
+      }
+    }
+  }
+}

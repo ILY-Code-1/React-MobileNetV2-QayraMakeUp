@@ -49,13 +49,32 @@ export interface AnalysisData {
   imageUrl?: string;
   createdAt?: string;
 
-  // ML Result fields
+  // ML Result fields (backward compatible)
   modelOutputRaw?: number[];
   predictedLabel?: string;
   predictedLabelDisplay?: string;
   confidenceScore?: number;
   generatedSummary?: string;
   clinicalNotes?: string;
+
+  // New ML fields (optional for backward compatibility)
+  summaryType?: 'single_dominant' | 'dual_blend' | 'multi_blend';
+  primaryClass?: string;
+  secondaryClass?: string;
+  tertiaryClass?: string;
+  clinicalFocus?: string;
+  treatmentPriority?: string[];
+  preparationProtocol?: {
+    '7_days_before'?: string[];
+    '3_days_before'?: string[];
+    day_of_makeup?: string[];
+  };
+  topClasses?: Array<{
+    key: string;
+    label: string;
+    probability: number;
+    rank: number;
+  }>;
 
   // Admin notes
   catatan_qayra?: string;
@@ -212,11 +231,21 @@ export const getAnalysisByUser = async (userId: string): Promise<AnalysisData[]>
   const q = query(
     collection(db, ANALYSIS_COLLECTION),
     where('userId', '==', userId)
-    // orderBy('createdAt', 'desc')
   );
   const snapshot = await getDocs(q);
   const analyses = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as AnalysisData));
-  return analyses;
+
+  // Sort in memory by createdAt (descending)
+  return analyses.sort((a, b) => {
+    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+
+    // Handle invalid dates (NaN)
+    const validA = isNaN(timeA) ? 0 : timeA;
+    const validB = isNaN(timeB) ? 0 : timeB;
+
+    return validB - validA; // Descending order
+  });
 };
 
 export const getAnalysisById = async (analysisId: string): Promise<AnalysisData | null> => {

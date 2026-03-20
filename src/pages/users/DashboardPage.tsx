@@ -66,7 +66,7 @@ const DashboardPage: React.FC = () => {
             <Sparkles className="w-8 h-8 text-[#C68E2D] mb-4 opacity-50" />
             <p className="text-xl font-black text-gray-800 tracking-wide leading-relaxed">
               {analyses.length > 0 
-                ? (analyses[0].result || 'Analisis Selesai') 
+                ? (analyses[0].predictedLabelDisplay || analyses[0].result || 'Analisis Selesai') 
                 : 'Belum Ada Data Analisis'}
             </p>
             {analyses.length > 0 && analyses[0].createdAt && !isNaN(new Date(analyses[0].createdAt).getTime()) && (
