@@ -211,11 +211,12 @@ export const updateUserStatus = async (
 export const getAnalysisByUser = async (userId: string): Promise<AnalysisData[]> => {
   const q = query(
     collection(db, ANALYSIS_COLLECTION),
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    where('userId', '==', userId)
+    // orderBy('createdAt', 'desc')
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as AnalysisData));
+  const analyses = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as AnalysisData));
+  return analyses;
 };
 
 export const getAnalysisById = async (analysisId: string): Promise<AnalysisData | null> => {

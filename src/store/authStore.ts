@@ -8,6 +8,11 @@ import {
   USERS_COLLECTION,
   type UserData,
 } from '../services/firestoreService';
+import {
+  getCookie,
+  setCookie,
+  removeCookie,
+} from '../utils/cookieHelper';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -25,21 +30,47 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: true,
 
   initializeAuth: () => {
+    // First, try to restore from cookie as fallback
+    const cookieUserData = getCookie();
+    if (cookieUserData) {
+      set({ isAuthenticated: true, user: cookieUserData, loading: false });
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
           const userDoc = await getDoc(doc(db, USERS_COLLECTION, firebaseUser.uid));
           if (userDoc.exists()) {
             const userData = { id: userDoc.id, ...userDoc.data() } as UserData;
-            set({ isAuthenticated: true, user: userData, loading: false });
+
+            // Only update if different from cookie data
+            set((state) => {
+              if (!state.user || state.user.id !== userData.id) {
+                // Save to cookie
+                setCookie(userData);
+                return { isAuthenticated: true, user: userData, loading: false };
+              }
+              return state;
+            });
           } else {
             set({ isAuthenticated: false, user: null, loading: false });
+            removeCookie();
           }
-        } catch {
+        } catch (error) {
+          // If cookie exists, keep using it
+          if (cookieUserData) {
+            return;
+          }
           set({ isAuthenticated: false, user: null, loading: false });
+          removeCookie();
         }
       } else {
+        // If cookie exists, keep using it until Firebase ready
+        if (cookieUserData) {
+          return;
+        }
         set({ isAuthenticated: false, user: null, loading: false });
+        removeCookie();
       }
     });
     return unsubscribe;
@@ -50,6 +81,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ loading: true });
       const userData = await loginWithFirebase(email, password);
       set({ isAuthenticated: true, user: userData, loading: false });
+      // Save to cookie
+      setCookie(userData);
       return true;
     } catch (error) {
       set({ loading: false });
@@ -62,6 +95,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       await logoutFromFirebase();
     } finally {
       set({ isAuthenticated: false, user: null, loading: false });
+      // Remove from cookie
+      removeCookie();
     }
   },
 
