@@ -172,7 +172,7 @@ const UsersPage: React.FC = () => {
                       </td>
                       <td className="px-4 py-4 text-center">
                         <span
-                          className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm ${getStatusColor(u.status)}`}
+                          className={`whitespace-nowrap text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm ${getStatusColor(u.status)}`}
                         >
                           {getStatusLabel(u.status)}
                         </span>

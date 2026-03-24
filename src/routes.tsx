@@ -80,41 +80,41 @@ export const AppRoutes: React.FC = () => {
         {/* Analysis and Users routes */}
         <Route path="analysis" element={<AnalysisPage />} />
         <Route path="users" element={<UsersPage />} />
+
+        {/* Detail Routes (with own header) */}
+        <Route
+          path="/analysis/:id"
+          element={
+            // <ProtectedRoute>
+            //   <MobileContainer>
+                <AdminAnalysisDetailPage />
+            //   </MobileContainer>
+            // </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/users/add"
+          element={
+            // <ProtectedRoute>
+            //   <MobileContainer>
+                <AddUserPage />
+            //   </MobileContainer>
+            // </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/users/edit/:id"
+          element={
+            // <ProtectedRoute>
+            //   <MobileContainer>
+                <EditUserPage />
+            //   </MobileContainer>
+            // </ProtectedRoute>
+          }
+        />
       </Route>
-
-      {/* Detail Routes (with own header) */}
-      <Route
-        path="/analysis/:id"
-        element={
-          <ProtectedRoute>
-            <MobileContainer>
-              <AdminAnalysisDetailPage />
-            </MobileContainer>
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/users/add"
-        element={
-          <ProtectedRoute>
-            <MobileContainer>
-              <AddUserPage />
-            </MobileContainer>
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/users/edit/:id"
-        element={
-          <ProtectedRoute>
-            <MobileContainer>
-              <EditUserPage />
-            </MobileContainer>
-          </ProtectedRoute>
-        }
-      />
 
       {/* Default Route */}
       <Route path="*" element={<Navigate to="/login" replace />} />

@@ -51,27 +51,91 @@ class PDFGenerator {
     this.currentY = MARGIN;
   }
 
+  // --------------------------------------------------------------------------
+  // NEW VISUAL HELPER METHODS
+  // --------------------------------------------------------------------------
+
+  /**
+   * Draw a short brand accent underline directly below the header block.
+   */
+  private drawAccentLine(): void {
+    this.doc.setDrawColor(...(COLORS.primary as [number, number, number]));
+    this.doc.setLineWidth(1.5);
+    this.doc.line(MARGIN, 42, MARGIN + 58, 42);
+  }
+
+  /**
+   * Draw a decorative rounded frame border around the analysis image.
+   * Called after addImage so the frame appears on top of the image edge.
+   */
+  private drawImageFrame(x: number, y: number, width: number, height: number): void {
+    this.doc.setDrawColor(...(COLORS.primary as [number, number, number]));
+    this.doc.setLineWidth(0.4);
+    this.doc.roundedRect(x - 2, y - 2, width + 4, height + 4, 2, 2, 'S');
+  }
+
+  /**
+   * Draw a short vertical accent bar to the left of a section header.
+   * Positioned so it spans from the separator line through the title baseline.
+   */
+  private drawSectionAccentBar(y: number, height: number): void {
+    this.doc.setFillColor(...(COLORS.primary as [number, number, number]));
+    this.doc.rect(MARGIN - 6, y, 3, height, 'F');
+  }
+
+  /**
+   * Draw a warm off-white background fill behind an info row.
+   * Must be called BEFORE the row's text commands so text renders on top.
+   */
+  private drawInfoRowBackground(y: number): void {
+    this.doc.setFillColor(252, 249, 245);
+    this.doc.rect(MARGIN - 3, y - 5, CONTENT_WIDTH + 6, 7, 'F');
+  }
+
+  /**
+   * Draw a thin brand-colored separator line above the footer text area.
+   */
+  private drawFooterLine(): void {
+    this.doc.setDrawColor(...(COLORS.primary as [number, number, number]));
+    this.doc.setLineWidth(0.4);
+    this.doc.line(MARGIN, PAGE_HEIGHT - MARGIN - 8, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - MARGIN - 8);
+  }
+
+  // --------------------------------------------------------------------------
+  // EXISTING METHODS (original logic preserved — visual helpers added)
+  // --------------------------------------------------------------------------
+
   /**
    * Add header section
    */
   private addHeader(title: string): void {
-    // Background
     this.doc.setFillColor(...(COLORS.black as [number, number, number]));
     this.doc.rect(0, 0, PAGE_WIDTH, 40, 'F');
 
-    // Title
-    this.doc.setTextColor(...(COLORS.primary as [number, number, number]));
-    this.doc.setFontSize(24);
-    this.doc.setFont('helvetica', 'bold');
-    this.doc.text(title, MARGIN, 28);
+    const iconSize = 18;
+    const iconX = MARGIN;
+    const iconY = 11;
 
-    // Subtitle
+    try {
+      this.doc.addImage('/qayra-icon.png', 'PNG', iconX, iconY, iconSize, iconSize);
+    } catch (error) {
+      console.warn('Icon gagal dimuat:', error);
+    }
+
+    const textX = iconX + iconSize + 8;
+    this.doc.setTextColor(...(COLORS.primary as [number, number, number]));
+    this.doc.setFontSize(20);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.text(title, textX, 24);
     this.doc.setTextColor(...(COLORS.white as [number, number, number]));
     this.doc.setFontSize(10);
     this.doc.setFont('helvetica', 'normal');
-    this.doc.text('BY QAYRA MAKE UP', MARGIN, 36);
+    this.doc.text('BY QAYRA MAKE UP', textX, 32);
 
     this.currentY = 50;
+
+    // Accent line
+    this.drawAccentLine();
   }
 
   /**
@@ -92,6 +156,9 @@ class PDFGenerator {
     this.doc.setFont('helvetica', 'bold');
     this.doc.text(title, MARGIN, this.currentY);
 
+    // Left accent bar anchoring the section header visually
+    this.drawSectionAccentBar(this.currentY - 10, 14);
+
     this.currentY += 5;
   }
 
@@ -99,6 +166,9 @@ class PDFGenerator {
    * Add info row
    */
   private addInfoRow(label: string, value: string): void {
+    // Warm off-white background drawn before text so text renders on top
+    this.drawInfoRowBackground(this.currentY);
+
     this.doc.setTextColor(...(COLORS.gray as [number, number, number]));
     this.doc.setFontSize(10);
     this.doc.setFont('helvetica', 'bold');
@@ -156,13 +226,25 @@ class PDFGenerator {
     this.doc.text(`Tingkat Keyakinan: ${percentage}%`, MARGIN, this.currentY);
 
     // Badge
-    this.currentY += 5;
-    this.doc.setFillColor(...(color as [number, number, number]));
-    this.doc.roundedRect(MARGIN, this.currentY - 4, 40, 8, 2, 2, 'F');
-    this.doc.setTextColor(...(COLORS.white as [number, number, number]));
-    this.doc.setFontSize(9);
+    this.currentY += 4;
+    this.doc.setFontSize(11);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text(label, MARGIN + 5, this.currentY + 2);
+    const textWidth = this.doc.getTextWidth(label);
+    const paddingX = 14;
+    const badgeWidth = textWidth + paddingX;
+    const badgeHeight = 12;
+    const badgeX = MARGIN;
+    const badgeY = this.currentY;
+    this.doc.setFillColor(...(color as [number, number, number]));
+    this.doc.roundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 4, 4, 'F');
+    this.doc.setTextColor(...(COLORS.white as [number, number, number]));
+    this.doc.text(label, badgeX + badgeWidth / 2, badgeY + badgeHeight / 2, {
+      align: 'center',
+      baseline: 'middle',
+    });
+
+    // Geser cursor ke bawah setelah badge
+    this.currentY += badgeHeight + 1;
 
     this.currentY += 10;
   }
@@ -189,11 +271,17 @@ class PDFGenerator {
       // Bar background
       this.doc.setFillColor(...(COLORS.lightGray as [number, number, number]));
       this.doc.rect(MARGIN, this.currentY + 2, CONTENT_WIDTH, 5, 'F');
+      // Rounded overlay for softer bar background (overdraws sharp rect edges)
+      this.doc.roundedRect(MARGIN, this.currentY + 2, CONTENT_WIDTH, 5, 2.5, 2.5, 'F');
 
       // Bar fill
       const barWidth = (prob * CONTENT_WIDTH);
       this.doc.setFillColor(...(isPredicted ? (COLORS.primary as [number, number, number]) : (COLORS.gray as [number, number, number])));
       this.doc.rect(MARGIN, this.currentY + 2, barWidth, 5, 'F');
+      // Rounded overlay for softer fill bar (only when wide enough for rounded corners)
+      if (barWidth > 5) {
+        this.doc.roundedRect(MARGIN, this.currentY + 2, barWidth, 5, 2.5, 2.5, 'F');
+      }
 
       // Percentage
       this.doc.setTextColor(...(COLORS.black as [number, number, number]));
@@ -236,7 +324,10 @@ class PDFGenerator {
 
       // Draw image centered
       const x = MARGIN + (CONTENT_WIDTH - width) / 2;
+      const frameY = this.currentY;
       this.doc.addImage(imageUrl, 'JPEG', x, this.currentY, width, height);
+      // Decorative border frame drawn after the image
+      this.drawImageFrame(x, frameY, width, height);
 
       this.currentY += height + 10;
     } catch (error) {
@@ -382,7 +473,7 @@ class PDFGenerator {
 
     this.currentY += 5;
     this.doc.setTextColor(...(COLORS.primary as [number, number, number]));
-    this.doc.setFontSize(16);
+    this.doc.setFontSize(14);
     this.doc.text(predictedLabel, MARGIN, this.currentY);
 
     // Confidence Score
@@ -465,6 +556,9 @@ class PDFGenerator {
     if (analysisData.createdAt && !isNaN(new Date(analysisData.createdAt).getTime())) {
       this.checkNewPage(20);
       this.currentY = PAGE_HEIGHT - MARGIN;
+
+      // Brand separator line above footer text
+      this.drawFooterLine();
 
       this.doc.setTextColor(...(COLORS.gray as [number, number, number]));
       this.doc.setFontSize(8);
