@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { ArrowLeft, User, Mail, Calendar, Shield, Save } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calendar, Shield, Save, Lock } from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
 
@@ -11,6 +11,7 @@ interface EditFormData {
   role: 'admin' | 'user';
   status: 'active' | 'inactive' | 'pending';
   eventDate?: string;
+  newPassword?: string;
 }
 
 const EditUserPage: React.FC = () => {
@@ -29,7 +30,8 @@ const EditUserPage: React.FC = () => {
     handleSubmit,
     setValue,
     getValues,
-    watch
+    watch,
+    formState: { errors },
   } = useForm<EditFormData>();
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -63,14 +65,18 @@ const EditUserPage: React.FC = () => {
 
     try {
       const formData = getValues();
-      const success = await updateUser({
+      const updateData: Parameters<typeof updateUser>[0] = {
         uid: id,
         name: formData.name,
         email: user.email,
         role: formData.role,
         status: formData.status,
         eventDate: formData.role === 'admin' || !formData.eventDate ? '' : new Date(formData.eventDate).toISOString(),
-      });
+      };
+      if (formData.newPassword) {
+        updateData.password = formData.newPassword;
+      }
+      const success = await updateUser(updateData);
 
       if (success) {
         navigate('/users');
@@ -176,6 +182,24 @@ const EditUserPage: React.FC = () => {
               <p className="text-[9px] font-bold text-black uppercase tracking-widest ml-1">Email tidak dapat diubah</p>
             </div>
 
+            {/* New Password Input (optional) */}
+            <div className="space-y-2">
+              <label htmlFor="newPassword" className="block text-[10px] font-black text-black uppercase tracking-[0.2em] ml-1">Password Baru</label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-black group-focus-within:text-[#C68E2D] transition-colors w-5 h-5" />
+                <input
+                  id="newPassword"
+                  type="password"
+                  placeholder="Kosongkan jika tidak ingin mengubah"
+                  className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold placeholder-gray-400 transition-all"
+                  {...register('newPassword', {
+                    minLength: { value: 6, message: 'Password minimal 6 karakter' },
+                  })}
+                />
+              </div>
+              <p className="text-[9px] font-bold text-black uppercase tracking-widest ml-1">Isi hanya jika ingin mengganti password</p>
+            </div>
+
             {/* Role, Status & Date - Single Column */}
             <div className="space-y-6">
               {/* Role Input */}
@@ -228,10 +252,20 @@ const EditUserPage: React.FC = () => {
                     <input
                       id="eventDate"
                       type="date"
+                      min={(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })()}
                       className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold transition-all"
-                      {...register('eventDate')}
+                      {...register('eventDate', {
+                        validate: (value) => {
+                          if (!value) return true;
+                          const today = new Date().toISOString().split('T')[0];
+                          return value > today || 'Tanggal acara harus setelah hari ini';
+                        },
+                      })}
                     />
                   </div>
+                  {errors.eventDate && (
+                    <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider mt-1 ml-1">{errors.eventDate.message}</p>
+                  )}
                 </div>
               )}
             </div>

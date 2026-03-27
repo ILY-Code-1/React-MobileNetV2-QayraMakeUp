@@ -27,6 +27,7 @@ export interface UpdateUserInput {
   role?: 'admin' | 'user';
   status?: 'active' | 'inactive' | 'pending';
   eventDate?: string;
+  password?: string;
 }
 
 interface UserState {
@@ -89,8 +90,9 @@ export const useUserStore = create<UserState>((set) => ({
   updateUser: async (userData: UpdateUserInput) => {
     set({ loading: true, error: null });
     try {
-      const { uid, ...data } = userData;
-      await updateUser(uid, data);
+      const { uid, password, ...data } = userData;
+      await updateUser(uid, { ...data, password });
+      // Jangan masukkan password ke state lokal
       set((state) => ({
         users: state.users.map((u) => (u.id === uid ? { ...u, ...data } : u)),
         loading: false,

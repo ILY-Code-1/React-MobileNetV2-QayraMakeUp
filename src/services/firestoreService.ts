@@ -10,15 +10,8 @@ import {
   where,
   orderBy,
 } from 'firebase/firestore';
-import {
-  signInWithEmailAndPassword,
-  signOut,
-  createUserWithEmailAndPassword,
-  getAuth,
-} from 'firebase/auth';
-import { initializeApp, deleteApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { auth, db, firebaseConfig } from '../firebase';
+import bcrypt from 'bcryptjs';
+import { db } from '../firebase';
 
 export const USERS_COLLECTION = 'users_qayra';
 export const ANALYSIS_COLLECTION = 'analysis_qayra';
@@ -81,34 +74,57 @@ export interface AnalysisData {
 }
 
 // ============================================================================
-// AUTH
+// HELPERS
+// ============================================================================
+
+/** Strip password before returning UserData to the caller */
+function stripPassword(data: Record<string, unknown>, id: string): UserData {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password: _p, ...rest } = data;
+  return { id, ...rest } as UserData;
+}
+
+// ============================================================================
+// AUTH (Firestore-only, no Firebase Authentication)
 // ============================================================================
 
 export const loginWithFirebase = async (email: string, password: string): Promise<UserData> => {
-  const credential = await signInWithEmailAndPassword(auth, email, password);
+  const q = query(
+    collection(db, USERS_COLLECTION),
+    where('email', '==', email.toLowerCase())
+  );
+  const snapshot = await getDocs(q);
 
-  const userDoc = await getDoc(doc(db, USERS_COLLECTION, credential.user.uid));
-  if (!userDoc.exists()) {
-    await signOut(auth);
-    throw new Error('Data user tidak ditemukan. Hubungi administrator.');
+  if (snapshot.empty) {
+    throw new Error('Email atau password salah.');
   }
 
+  const userDoc = snapshot.docs[0];
   const userData = userDoc.data();
 
   if (userData['status'] === 'inactive') {
-    await signOut(auth);
     throw new Error('Akun tidak aktif. Hubungi administrator.');
   }
 
-  await updateDoc(doc(db, USERS_COLLECTION, credential.user.uid), {
+  const storedHash: string = userData['password'] ?? '';
+  if (!storedHash) {
+    throw new Error('Akun belum memiliki password. Hubungi administrator.');
+  }
+
+  const isValid = await bcrypt.compare(password, storedHash);
+  if (!isValid) {
+    throw new Error('Email atau password salah.');
+  }
+
+  await updateDoc(doc(db, USERS_COLLECTION, userDoc.id), {
     lastLoginAt: new Date().toISOString(),
   });
 
-  return { id: credential.user.uid, ...userData } as UserData;
+  return stripPassword(userData, userDoc.id);
 };
 
 export const logoutFromFirebase = async (): Promise<void> => {
-  await signOut(auth);
+  // No Firebase Auth session to clear; state is managed by the caller.
 };
 
 // ============================================================================
@@ -136,17 +152,16 @@ export const getAllUsers = async (filters?: {
   }
 
   const snapshot = await getDocs(q);
-  const users = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as UserData));
+  const users = snapshot.docs.map((d) => stripPassword(d.data(), d.id));
 
   // Sort in memory to include documents without createdAt field
   return users.sort((a, b) => {
     const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
     const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-    
-    // Handle invalid dates (NaN)
+
     const validA = isNaN(timeA) ? 0 : timeA;
     const validB = isNaN(timeB) ? 0 : timeB;
-    
+
     return validB - validA; // Descending order
   });
 };
@@ -154,12 +169,12 @@ export const getAllUsers = async (filters?: {
 export const getUserById = async (userId: string): Promise<UserData | null> => {
   const docSnap = await getDoc(doc(db, USERS_COLLECTION, userId));
   if (!docSnap.exists()) return null;
-  return { id: docSnap.id, ...docSnap.data() } as UserData;
+  return stripPassword(docSnap.data(), docSnap.id);
 };
 
 /**
- * Admin membuat user baru menggunakan secondary Firebase app instance
- * agar admin tidak ter-logout saat create user baru
+ * Admin membuat user baru langsung ke Firestore (tanpa Firebase Authentication).
+ * Password di-hash menggunakan bcrypt sebelum disimpan.
  */
 export const createUserAsAdmin = async (userData: {
   name: string;
@@ -168,45 +183,51 @@ export const createUserAsAdmin = async (userData: {
   role: 'admin' | 'user';
   eventDate?: string;
 }): Promise<UserData> => {
-  const secondaryApp = initializeApp(firebaseConfig, `secondary-${Date.now()}`);
-  const secondaryAuth = getAuth(secondaryApp);
-  const secondaryDb = getFirestore(secondaryApp);
+  const emailLower = userData.email.toLowerCase();
 
-  try {
-    const credential = await createUserWithEmailAndPassword(
-      secondaryAuth,
-      userData.email,
-      userData.password
-    );
-
-    const now = new Date().toISOString();
-    const newUser = {
-      name: userData.name,
-      email: userData.email.toLowerCase(),
-      role: userData.role,
-      status: 'active' as const,
-      eventDate: userData.eventDate ?? '',
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    await setDoc(doc(secondaryDb, USERS_COLLECTION, credential.user.uid), newUser);
-
-    return { id: credential.user.uid, ...newUser };
-  } finally {
-    await signOut(secondaryAuth);
-    await deleteApp(secondaryApp);
+  // Cek duplikasi email
+  const q = query(collection(db, USERS_COLLECTION), where('email', '==', emailLower));
+  const existing = await getDocs(q);
+  if (!existing.empty) {
+    throw new Error('Email sudah terdaftar. Gunakan email lain.');
   }
+
+  const password = await bcrypt.hash(userData.password, 10);
+  const now = new Date().toISOString();
+  const newDocRef = doc(collection(db, USERS_COLLECTION));
+
+  const newUser = {
+    name: userData.name,
+    email: emailLower,
+    password,
+    role: userData.role,
+    status: 'active' as const,
+    eventDate: userData.eventDate ?? '',
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  await setDoc(newDocRef, newUser);
+
+  return stripPassword(newUser, newDocRef.id);
 };
 
 export const updateUser = async (
   userId: string,
-  data: Partial<Omit<UserData, 'id'>>
+  data: Partial<Omit<UserData, 'id'>> & { password?: string }
 ): Promise<void> => {
-  await updateDoc(doc(db, USERS_COLLECTION, userId), {
-    ...data,
+  const { password, ...rest } = data;
+
+  const updateData: Record<string, unknown> = {
+    ...rest,
     updatedAt: new Date().toISOString(),
-  });
+  };
+
+  if (password) {
+    updateData['password'] = await bcrypt.hash(password, 10);
+  }
+
+  await updateDoc(doc(db, USERS_COLLECTION, userId), updateData);
 };
 
 export const deleteUserFromFirestore = async (userId: string): Promise<void> => {
@@ -240,7 +261,6 @@ export const getAnalysisByUser = async (userId: string): Promise<AnalysisData[]>
     const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
     const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
 
-    // Handle invalid dates (NaN)
     const validA = isNaN(timeA) ? 0 : timeA;
     const validB = isNaN(timeB) ? 0 : timeB;
 

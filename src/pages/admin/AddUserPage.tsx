@@ -205,9 +205,15 @@ const AddUserPage: React.FC = () => {
                     <input
                       id="eventDate"
                       type="date"
+                      min={(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })()}
                       className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-none rounded-2xl focus:ring-2 focus:ring-[#C68E2D] text-gray-800 font-bold transition-all"
                       {...register('eventDate', {
                         required: selectedRole !== 'user' ? 'Wajib diisi' : false,
+                        validate: (value) => {
+                          if (!value) return true;
+                          const today = new Date().toISOString().split('T')[0];
+                          return value > today || 'Tanggal acara harus setelah hari ini';
+                        },
                       })}
                     />
                   </div>

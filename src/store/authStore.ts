@@ -1,11 +1,8 @@
 import { create } from 'zustand';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
 import {
   loginWithFirebase,
   logoutFromFirebase,
-  USERS_COLLECTION,
+  getUserById,
   type UserData,
 } from '../services/firestoreService';
 import {
@@ -24,65 +21,27 @@ interface AuthState {
   refreshUserData: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   user: null,
   loading: true,
 
   initializeAuth: () => {
-    // First, try to restore from cookie as fallback
     const cookieUserData = getCookie();
     if (cookieUserData) {
       set({ isAuthenticated: true, user: cookieUserData, loading: false });
+    } else {
+      set({ loading: false });
     }
-
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        try {
-          const userDoc = await getDoc(doc(db, USERS_COLLECTION, firebaseUser.uid));
-          if (userDoc.exists()) {
-            const userData = { id: userDoc.id, ...userDoc.data() } as UserData;
-
-            // Only update if different from cookie data
-            set((state) => {
-              if (!state.user || state.user.id !== userData.id) {
-                // Save to cookie
-                setCookie(userData);
-                return { isAuthenticated: true, user: userData, loading: false };
-              }
-              return state;
-            });
-          } else {
-            set({ isAuthenticated: false, user: null, loading: false });
-            removeCookie();
-          }
-        } catch (error) {
-          // If cookie exists, keep using it
-          if (cookieUserData) {
-            return;
-          }
-          set({ isAuthenticated: false, user: null, loading: false });
-          removeCookie();
-        }
-      } else {
-        // If cookie exists, keep using it until Firebase ready
-        if (cookieUserData) {
-          return;
-        }
-        set({ isAuthenticated: false, user: null, loading: false });
-        removeCookie();
-      }
-    });
-    return unsubscribe;
+    return () => {};
   },
 
   login: async (email: string, password: string) => {
     try {
       set({ loading: true });
       const userData = await loginWithFirebase(email, password);
-      set({ isAuthenticated: true, user: userData, loading: false });
-      // Save to cookie
       setCookie(userData);
+      set({ isAuthenticated: true, user: userData, loading: false });
       return true;
     } catch (error) {
       set({ loading: false });
@@ -94,18 +53,18 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await logoutFromFirebase();
     } finally {
-      set({ isAuthenticated: false, user: null, loading: false });
-      // Remove from cookie
       removeCookie();
+      set({ isAuthenticated: false, user: null, loading: false });
     }
   },
 
   refreshUserData: async () => {
-    if (!auth.currentUser) return;
+    const userId = get().user?.id;
+    if (!userId) return;
     try {
-      const userDoc = await getDoc(doc(db, USERS_COLLECTION, auth.currentUser.uid));
-      if (userDoc.exists()) {
-        const userData = { id: userDoc.id, ...userDoc.data() } as UserData;
+      const userData = await getUserById(userId);
+      if (userData) {
+        setCookie(userData);
         set({ user: userData });
       }
     } catch {

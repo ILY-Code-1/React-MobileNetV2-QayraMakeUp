@@ -1,14 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import React, { createContext, useContext, useState, type ReactNode } from 'react';
 import {
   loginWithFirebase,
   logoutFromFirebase,
   createUserAsAdmin,
-  USERS_COLLECTION,
+  getUserById,
   type UserData,
 } from '../services/firestoreService';
+import { getCookie, setCookie, removeCookie } from '../utils/cookieHelper';
 
 interface AuthContextType {
   user: UserData | null;
@@ -37,33 +35,12 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        try {
-          const userDoc = await getDoc(doc(db, USERS_COLLECTION, firebaseUser.uid));
-          if (userDoc.exists()) {
-            setUser({ id: userDoc.id, ...userDoc.data() } as UserData);
-          } else {
-            setUser(null);
-          }
-        } catch {
-          setUser(null);
-        }
-      } else {
-        setUser(null);
-      }
-      setIsLoading(false);
-    });
-
-    return unsubscribe;
-  }, []);
+  const [user, setUser] = useState<UserData | null>(() => getCookie());
+  const [isLoading] = useState(false);
 
   const login = async (email: string, password: string) => {
     const userData = await loginWithFirebase(email, password);
+    setCookie(userData);
     setUser(userData);
   };
 
@@ -74,19 +51,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       password,
       role: 'user',
     });
+    setCookie(userData);
     setUser(userData);
   };
 
   const logout = async () => {
     await logoutFromFirebase();
+    removeCookie();
     setUser(null);
   };
 
   const refreshUser = async () => {
-    if (!auth.currentUser) return;
-    const userDoc = await getDoc(doc(db, USERS_COLLECTION, auth.currentUser.uid));
-    if (userDoc.exists()) {
-      setUser({ id: userDoc.id, ...userDoc.data() } as UserData);
+    if (!user?.id) return;
+    const userData = await getUserById(user.id);
+    if (userData) {
+      setCookie(userData);
+      setUser(userData);
     }
   };
 
