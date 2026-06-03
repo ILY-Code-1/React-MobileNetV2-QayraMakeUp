@@ -1,0 +1,227 @@
+' == Sequence: UC01 Login ==
+@startuml
+title Sequence - UC01 Login
+actor "Client/Admin" as User
+participant "LoginPage" as UI
+participant "authStore /\nfirestoreService" as Ctrl
+database "Firestore\n(users_qayra)" as DB
+
+User -> UI : Mengisi email & password, klik LOGIN
+activate UI
+UI -> Ctrl : login(email, password)
+activate Ctrl
+Ctrl -> DB : query user by email
+activate DB
+DB --> Ctrl : data user
+deactivate DB
+alt Kredensial valid & aktif
+  Ctrl -> DB : update lastLoginAt
+  Ctrl --> UI : data user (sesi disimpan)
+  UI --> User : Tampilkan Dashboard
+else Tidak valid
+  Ctrl --> UI : Error "Email atau password salah"
+  UI --> User : Tampilkan pesan error
+end
+deactivate Ctrl
+deactivate UI
+@enduml
+
+' == Sequence: UC02 Logout ==
+@startuml
+title Sequence - UC02 Logout
+actor "Pengguna" as User
+participant "AppLayout" as UI
+participant "authStore" as Ctrl
+
+User -> UI : Klik ikon Logout
+activate UI
+UI -> User : Tampilkan konfirmasi keluar
+User -> UI : Konfirmasi "Ya, Keluar"
+UI -> Ctrl : logout()
+activate Ctrl
+Ctrl -> Ctrl : Hapus cookie & reset sesi
+Ctrl --> UI : Sesi terhapus
+deactivate Ctrl
+UI --> User : Arahkan ke halaman Login
+deactivate UI
+@enduml
+
+' == Sequence: UC03 Melakukan Analisis Kulit Wajah ==
+@startuml
+title Sequence - UC03 Melakukan Analisis Kulit Wajah
+actor "Client" as User
+participant "CameraPage" as UI
+participant "tfliteService\n(MobileNetV2)" as ML
+database "Firestore\n(analysis_qayra)" as DB
+
+User -> UI : Ambil/unggah foto & konfirmasi
+activate UI
+UI -> ML : analyzeImage(foto)
+activate ML
+ML --> UI : Hasil inferensi (kondisi kulit, skor, rekomendasi)
+deactivate ML
+UI -> DB : saveAnalysis(hasil)
+activate DB
+DB --> UI : Data analisis tersimpan
+deactivate DB
+UI --> User : Tampilkan Detail Hasil Analisis
+deactivate UI
+@enduml
+
+' == Sequence: UC04 Melihat Riwayat Analisis ==
+@startuml
+title Sequence - UC04 Melihat Riwayat Analisis
+actor "Client" as User
+participant "RiwayatPage" as UI
+participant "analysisStore" as Ctrl
+database "Firestore\n(analysis_qayra)" as DB
+
+User -> UI : Membuka halaman Riwayat
+activate UI
+UI -> Ctrl : fetchUserAnalyses(userId)
+activate Ctrl
+Ctrl -> DB : query analisis where userId
+activate DB
+DB --> Ctrl : daftar analisis
+deactivate DB
+Ctrl --> UI : daftar analisis (terurut terbaru)
+deactivate Ctrl
+UI --> User : Menampilkan riwayat analisis
+deactivate UI
+@enduml
+
+' == Sequence: UC05 Melihat Detail Hasil Analisis ==
+@startuml
+title Sequence - UC05 Melihat Detail Hasil Analisis
+actor "Pengguna" as User
+participant "AnalysisDetailPage" as UI
+participant "firestoreService" as Ctrl
+database "Firestore\n(analysis_qayra)" as DB
+
+User -> UI : Memilih hasil analisis (id)
+activate UI
+UI -> Ctrl : getAnalysisById(id)
+activate Ctrl
+Ctrl -> DB : getDoc(analysis_qayra/id)
+activate DB
+DB --> Ctrl : dokumen analisis
+deactivate DB
+Ctrl --> UI : data analisis
+deactivate Ctrl
+UI --> User : Menampilkan detail (kondisi, skor, rekomendasi, foto)
+deactivate UI
+@enduml
+
+' == Sequence: UC06 Mengunduh Laporan PDF ==
+@startuml
+title Sequence - UC06 Mengunduh Laporan PDF
+actor "Pengguna" as User
+participant "AnalysisDetailPage" as UI
+participant "pdfGenerator" as Ctrl
+
+User -> UI : Klik tombol Download
+activate UI
+UI -> Ctrl : generateAnalysisPDF(analysisData)
+activate Ctrl
+Ctrl -> Ctrl : Menyusun layout & konten laporan
+Ctrl --> UI : Berkas PDF
+deactivate Ctrl
+UI --> User : Mengunduh laporan PDF ke perangkat
+deactivate UI
+@enduml
+
+' == Sequence: UC07 Menambahkan Catatan Qayra ==
+@startuml
+title Sequence - UC07 Menambahkan Catatan Qayra
+actor "Admin" as User
+participant "AnalysisDetailPage" as UI
+participant "firestoreService" as Ctrl
+database "Firestore\n(analysis_qayra)" as DB
+
+User -> UI : Menulis catatan & klik Simpan
+activate UI
+UI -> Ctrl : updateDoc(catatan_qayra)
+activate Ctrl
+Ctrl -> DB : update dokumen analisis
+activate DB
+DB --> Ctrl : sukses
+deactivate DB
+Ctrl --> UI : Catatan tersimpan
+deactivate Ctrl
+UI --> User : Notifikasi "Catatan Tersimpan"
+deactivate UI
+@enduml
+
+' == Sequence: UC08 Melihat Dashboard Admin ==
+@startuml
+title Sequence - UC08 Melihat Dashboard Admin
+actor "Admin" as User
+participant "AdminDashboardPage" as UI
+participant "userStore /\nanalysisStore" as Ctrl
+database "Firestore" as DB
+
+User -> UI : Membuka Dashboard Admin
+activate UI
+UI -> Ctrl : getAllUsers() & fetchAllAnalyses()
+activate Ctrl
+Ctrl -> DB : ambil users_qayra & analysis_qayra
+activate DB
+DB --> Ctrl : data user & analisis
+deactivate DB
+Ctrl --> UI : daftar user & analisis
+deactivate Ctrl
+UI -> UI : Hitung total Client/Admin/Analisis
+UI --> User : Menampilkan statistik & analisis terbaru
+deactivate UI
+@enduml
+
+' == Sequence: UC09 Mengelola Data User ==
+@startuml
+title Sequence - UC09 Mengelola Data User
+actor "Admin" as User
+participant "Users/Add/EditPage" as UI
+participant "userStore" as Ctrl
+database "Firestore\n(users_qayra)" as DB
+
+User -> UI : Pilih aksi (tambah/edit/hapus) & submit
+activate UI
+UI -> Ctrl : createUser/updateUser/deleteUser(data)
+activate Ctrl
+Ctrl -> DB : tulis/perbarui/hapus dokumen user
+activate DB
+DB --> Ctrl : hasil operasi
+deactivate DB
+alt Operasi berhasil
+  Ctrl --> UI : Perbarui daftar user
+  UI --> User : Tampilkan daftar user terbaru
+else Gagal
+  Ctrl --> UI : Pesan kesalahan
+  UI --> User : Tampilkan pesan error
+end
+deactivate Ctrl
+deactivate UI
+@enduml
+
+' == Sequence: UC10 Mengelola Data Analisis ==
+@startuml
+title Sequence - UC10 Mengelola Data Analisis
+actor "Admin" as User
+participant "AnalysisPage" as UI
+participant "analysisStore" as Ctrl
+database "Firestore\n(analysis_qayra)" as DB
+
+User -> UI : Membuka Hasil Analisis & pilih Hapus
+activate UI
+UI -> User : Tampilkan konfirmasi hapus
+User -> UI : Konfirmasi "Ya, Hapus"
+UI -> Ctrl : removeAnalysis(id)
+activate Ctrl
+Ctrl -> DB : deleteDoc(analysis_qayra/id)
+activate DB
+DB --> Ctrl : sukses
+deactivate DB
+Ctrl --> UI : Perbarui daftar analisis
+deactivate Ctrl
+UI --> User : Notifikasi "Data analisis berhasil dihapus"
+deactivate UI
+@enduml

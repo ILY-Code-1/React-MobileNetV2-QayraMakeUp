@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desain Basis Data Relasional (ERD &rarr; LRS) - QAYRA FACIAL ANALYZING</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #222; max-width: 1100px; margin: 0 auto; padding: 32px; background: #fafafa; }
+  h1 { color: #000; border-bottom: 4px solid #C68E2D; padding-bottom: 10px; }
+  h2 { color: #C68E2D; margin-top: 44px; border-left: 5px solid #C68E2D; padding-left: 12px; }
+  h3 { color: #333; margin-top: 28px; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; font-size: 13.5px; vertical-align: top; }
+  th { background: #C68E2D; color: #fff; }
+  tr:nth-child(even) { background: #faf6ef; }
+  code { background: #f0eadf; padding: 1px 5px; border-radius: 4px; color: #8a5a00; }
+  pre.plantuml { background: #2b2b2b; color: #e6e6e6; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+  .note { background: #fff8e7; border-left: 4px solid #C68E2D; padding: 12px 16px; margin: 12px 0; }
+  .pk { color: #b8860b; font-weight: bold; }
+  .fk { color: #2a6fb0; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>Desain Basis Data Relasional (ERD &rarr; LRS)</h1>
+<p><strong>Aplikasi:</strong> QAYRA FACIAL ANALYZING — by Qayra Make Up<br>
+<strong>Catatan:</strong> Dokumen ini menormalisasi struktur dokumen Firestore (<code>users_qayra</code>, <code>analysis_qayra</code>)
+ke dalam model relasional konseptual untuk keperluan akademik/dokumentasi. Atribut array & map yang tersematkan
+(<em>embedded</em>) dipecah menjadi tabel tersendiri.</p>
+
+<!-- =================================================================== -->
+<h2>1. Entity Relationship Diagram (ERD)</h2>
+<p>
+Domain QAYRA terdiri dari lima entitas utama. <strong>User</strong> adalah klien atau admin; setiap User dapat memiliki
+banyak <strong>Analysis</strong> (one-to-many). Setiap Analysis menghasilkan distribusi probabilitas terhadap lima jenis
+kondisi kulit, sehingga terbentuk relasi <strong>many-to-many</strong> antara <strong>Analysis</strong> dan
+<strong>SkinConditionClass</strong>. Selain itu, satu Analysis memiliki banyak baris <strong>TreatmentPriority</strong>
+(prioritas perawatan) dan banyak baris <strong>PreparationStep</strong> (langkah protokol persiapan) — keduanya merupakan
+<em>weak entity</em> yang keberadaannya bergantung pada Analysis.
+</p>
+<pre class="plantuml">
+@startuml
+' ERD - Crow's Foot Notation (PlantUML)
+entity "User" as User {
+  * user_id : VARCHAR(28) <<PK>>
+  --
+  + name : VARCHAR(100) <<NN>>
+  + email : VARCHAR(150) <<NN>>
+  + password : VARCHAR(60) <<NN>>
+  + role : ENUM <<NN>>
+  + status : ENUM <<NN>>
+  event_date : DATETIME
+  created_at : DATETIME
+  updated_at : DATETIME
+  last_login_at : DATETIME
+}
+
+entity "SkinConditionClass" as Skin {
+  * class_key : VARCHAR(20) <<PK>>
+  --
+  + label : VARCHAR(50) <<NN>>
+  + output_index : INT <<NN>>
+  severity_weight : DECIMAL(3,2)
+  clinical_focus : VARCHAR(255)
+}
+
+entity "Analysis" as Analysis {
+  * analysis_id : VARCHAR(28) <<PK>>
+  --
+  + user_id : VARCHAR(28) <<FK>> <<NN>>
+  predicted_label : VARCHAR(20) <<FK>>
+  name : VARCHAR(100)
+  email : VARCHAR(150)
+  event_date : DATETIME
+  image_url : TEXT
+  result : VARCHAR(50)
+  confidence_score : DECIMAL(5,4)
+  generated_summary : TEXT
+  clinical_notes : TEXT
+  clinical_focus : VARCHAR(255)
+  summary_type : ENUM
+  catatan_qayra : TEXT
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+entity "AnalysisClassProbability" as Prob {
+  * analysis_id : VARCHAR(28) <<PK>> <<FK>>
+  * class_key : VARCHAR(20) <<PK>> <<FK>>
+  --
+  + probability : DECIMAL(5,4) <<NN>>
+  + rank : INT <<NN>>
+}
+
+entity "TreatmentPriority" as Treat {
+  * analysis_id : VARCHAR(28) <<PK>> <<FK>>
+  * sequence_no : INT <<PK>>
+  --
+  + description : VARCHAR(255) <<NN>>
+}
+
+entity "PreparationStep" as Prep {
+  * analysis_id : VARCHAR(28) <<PK>> <<FK>>
+  * phase : ENUM <<PK>>
+  * sequence_no : INT <<PK>>
+  --
+  + description : VARCHAR(255) <<NN>>
+}
+
+User ||--o{ Analysis : "memiliki"
+Skin ||--o{ Analysis : "kelas dominan"
+Analysis ||--o{ Prob : "menghasilkan"
+Skin ||--o{ Prob : "diacu oleh"
+Analysis ||--o{ Treat : "merekomendasikan"
+Analysis ||--o{ Prep : "memandu"
+@enduml
+</pre>
+
+<!-- =================================================================== -->
+<h2>2. Transformasi ERD ke LRS (Logical Record Structure)</h2>
+<p>Aturan transformasi yang diterapkan terhadap ERD di atas:</p>
+<ul>
+  <li><strong>One-to-Many <code>User &rarr; Analysis</code>:</strong> Foreign Key <code>user_id</code> ditempatkan di
+      sisi "many", yaitu tabel <strong>Analysis</strong>.</li>
+  <li><strong>One-to-Many <code>SkinConditionClass &rarr; Analysis</code> (kelas dominan):</strong> FK
+      <code>predicted_label</code> ditempatkan di tabel <strong>Analysis</strong> dan merujuk ke
+      <code>SkinConditionClass.class_key</code>.</li>
+  <li><strong>Many-to-Many <code>Analysis &harr; SkinConditionClass</code>:</strong> menghasilkan tabel junction baru
+      <strong>AnalysisClassProbability</strong> dengan <em>composite primary key</em>
+      (<code>analysis_id</code> + <code>class_key</code>) ditambah atribut relasi <code>probability</code> dan
+      <code>rank</code>. Tabel ini menormalisasi array <code>modelOutputRaw</code> dan <code>topClasses</code> dari Firestore.</li>
+  <li><strong>Multivalued attribute <code>treatmentPriority[]</code>:</strong> dipisah menjadi tabel
+      <strong>TreatmentPriority</strong> (weak entity) dengan FK <code>analysis_id</code> dan PK gabungan
+      (<code>analysis_id</code> + <code>sequence_no</code>).</li>
+  <li><strong>Nested multivalued <code>preparationProtocol{7_days_before,3_days_before,day_of_makeup}</code>:</strong>
+      dipisah menjadi tabel <strong>PreparationStep</strong> (weak entity) dengan PK gabungan
+      (<code>analysis_id</code> + <code>phase</code> + <code>sequence_no</code>).</li>
+  <li><strong>Weak entity:</strong> PK tabel <strong>TreatmentPriority</strong> dan <strong>PreparationStep</strong>
+      mewarisi FK <code>analysis_id</code> dari <strong>Analysis</strong> sebagai bagian dari composite key.</li>
+</ul>
+<pre class="plantuml">
+@startuml
+' LRS hasil transformasi (PlantUML class - stereotype Table)
+class User <<Table>> {
+  + PK user_id : VARCHAR(28)
+  - name : VARCHAR(100)
+  - email : VARCHAR(150)
+  - password : VARCHAR(60)
+  - role : ENUM
+  - status : ENUM
+  - event_date : DATETIME
+  - created_at : DATETIME
+  - updated_at : DATETIME
+  - last_login_at : DATETIME
+}
+
+class SkinConditionClass <<Table>> {
+  + PK class_key : VARCHAR(20)
+  - label : VARCHAR(50)
+  - output_index : INT
+  - severity_weight : DECIMAL(3,2)
+  - clinical_focus : VARCHAR(255)
+}
+
+class Analysis <<Table>> {
+  + PK analysis_id : VARCHAR(28)
+  # FK user_id : VARCHAR(28)
+  # FK predicted_label : VARCHAR(20)
+  - name : VARCHAR(100)
+  - email : VARCHAR(150)
+  - event_date : DATETIME
+  - image_url : TEXT
+  - result : VARCHAR(50)
+  - confidence_score : DECIMAL(5,4)
+  - generated_summary : TEXT
+  - clinical_notes : TEXT
+  - clinical_focus : VARCHAR(255)
+  - summary_type : ENUM
+  - catatan_qayra : TEXT
+  - created_at : DATETIME
+  - updated_at : DATETIME
+}
+
+class AnalysisClassProbability <<Table>> {
+  + PK,FK analysis_id : VARCHAR(28)
+  + PK,FK class_key : VARCHAR(20)
+  - probability : DECIMAL(5,4)
+  - rank : INT
+}
+
+class TreatmentPriority <<Table>> {
+  + PK,FK analysis_id : VARCHAR(28)
+  + PK sequence_no : INT
+  - description : VARCHAR(255)
+}
+
+class PreparationStep <<Table>> {
+  + PK,FK analysis_id : VARCHAR(28)
+  + PK phase : ENUM
+  + PK sequence_no : INT
+  - description : VARCHAR(255)
+}
+
+User --> Analysis : user_id
+SkinConditionClass --> Analysis : predicted_label
+Analysis --> AnalysisClassProbability : analysis_id
+SkinConditionClass --> AnalysisClassProbability : class_key
+Analysis --> TreatmentPriority : analysis_id
+Analysis --> PreparationStep : analysis_id
+@enduml
+</pre>
+
+<!-- =================================================================== -->
+<h2>3. Logical Record Structure (LRS) — Final</h2>
+<p>Representasi final skema logis basis data setelah transformasi (tanpa anotasi proses).</p>
+<pre class="plantuml">
+@startuml
+class User <<Table>> {
+  + PK user_id : VARCHAR(28)
+  - name : VARCHAR(100)
+  - email : VARCHAR(150)
+  - password : VARCHAR(60)
+  - role : ENUM
+  - status : ENUM
+  - event_date : DATETIME
+  - created_at : DATETIME
+  - updated_at : DATETIME
+  - last_login_at : DATETIME
+}
+class SkinConditionClass <<Table>> {
+  + PK class_key : VARCHAR(20)
+  - label : VARCHAR(50)
+  - output_index : INT
+  - severity_weight : DECIMAL(3,2)
+  - clinical_focus : VARCHAR(255)
+}
+class Analysis <<Table>> {
+  + PK analysis_id : VARCHAR(28)
+  # FK user_id : VARCHAR(28)
+  # FK predicted_label : VARCHAR(20)
+  - name : VARCHAR(100)
+  - email : VARCHAR(150)
+  - event_date : DATETIME
+  - image_url : TEXT
+  - result : VARCHAR(50)
+  - confidence_score : DECIMAL(5,4)
+  - generated_summary : TEXT
+  - clinical_notes : TEXT
+  - clinical_focus : VARCHAR(255)
+  - summary_type : ENUM
+  - catatan_qayra : TEXT
+  - created_at : DATETIME
+  - updated_at : DATETIME
+}
+class AnalysisClassProbability <<Table>> {
+  + PK,FK analysis_id : VARCHAR(28)
+  + PK,FK class_key : VARCHAR(20)
+  - probability : DECIMAL(5,4)
+  - rank : INT
+}
+class TreatmentPriority <<Table>> {
+  + PK,FK analysis_id : VARCHAR(28)
+  + PK sequence_no : INT
+  - description : VARCHAR(255)
+}
+class PreparationStep <<Table>> {
+  + PK,FK analysis_id : VARCHAR(28)
+  + PK phase : ENUM
+  + PK sequence_no : INT
+  - description : VARCHAR(255)
+}
+
+User "1" --> "0..*" Analysis : user_id
+SkinConditionClass "1" --> "0..*" Analysis : predicted_label
+Analysis "1" --> "1..*" AnalysisClassProbability : analysis_id
+SkinConditionClass "1" --> "0..*" AnalysisClassProbability : class_key
+Analysis "1" --> "0..*" TreatmentPriority : analysis_id
+Analysis "1" --> "0..*" PreparationStep : analysis_id
+@enduml
+</pre>
+
+<!-- =================================================================== -->
+<h2>4. Spesifikasi Basis Data</h2>
+
+<h3>Tabel: User</h3>
+<table>
+  <thead><tr><th>No</th><th>Nama Field</th><th>Tipe Data</th><th>Ukuran</th><th>PK</th><th>FK</th><th>Null</th><th>Default</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="pk">user_id</td><td>VARCHAR</td><td>28</td><td>Yes</td><td>-</td><td>Not Null</td><td>auto-ID</td><td>Identitas unik user</td></tr>
+    <tr><td>2</td><td>name</td><td>VARCHAR</td><td>100</td><td>-</td><td>-</td><td>Not Null</td><td>-</td><td>Nama lengkap user/klien</td></tr>
+    <tr><td>3</td><td>email</td><td>VARCHAR</td><td>150</td><td>-</td><td>-</td><td>Not Null</td><td>-</td><td>Email login (unique, lowercase)</td></tr>
+    <tr><td>4</td><td>password</td><td>VARCHAR</td><td>60</td><td>-</td><td>-</td><td>Not Null</td><td>-</td><td>Hash bcrypt password</td></tr>
+    <tr><td>5</td><td>role</td><td>ENUM</td><td>admin,user</td><td>-</td><td>-</td><td>Not Null</td><td>'user'</td><td>Peran pengguna</td></tr>
+    <tr><td>6</td><td>status</td><td>ENUM</td><td>active,inactive,pending</td><td>-</td><td>-</td><td>Not Null</td><td>'active'</td><td>Status akun</td></tr>
+    <tr><td>7</td><td>event_date</td><td>DATETIME</td><td>-</td><td>-</td><td>-</td><td>Null</td><td>NULL</td><td>Tanggal acara klien</td></tr>
+    <tr><td>8</td><td>created_at</td><td>DATETIME</td><td>-</td><td>-</td><td>-</td><td>Null</td><td>now()</td><td>Waktu pembuatan akun</td></tr>
+    <tr><td>9</td><td>updated_at</td><td>DATETIME</td><td>-</td><td>-</td><td>-</td><td>Null</td><td>now()</td><td>Waktu pembaruan terakhir</td></tr>
+    <tr><td>10</td><td>last_login_at</td><td>DATETIME</td><td>-</td><td>-</td><td>-</td><td>Null</td><td>NULL</td><td>Waktu login terakhir</td></tr>
+  </tbody>
+</table>
+
+<h3>Tabel: SkinConditionClass</h3>
+<table>
+  <thead><tr><th>No</th><th>Nama Field</th><th>Tipe Data</th><th>Ukuran</th><th>PK</th><th>FK</th><th>Null</th><th>Default</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="pk">class_key</td><td>VARCHAR</td><td>20</td><td>Yes</td><td>-</td><td>Not Null</td><td>-</td><td>Kunci kelas (acne, dry, normal, oily, sensitive)</td></tr>
+    <tr><td>2</td><td>label</td><td>VARCHAR</td><td>50</td><td>-</td><td>-</td><td>Not Null</td><td>-</td><td>Label tampilan (mis. "Oily Skin")</td></tr>
+    <tr><td>3</td><td>output_index</td><td>INT</td><td>-</td><td>-</td><td>-</td><td>Not Null</td><td>-</td><td>Indeks output model (0-4)</td></tr>
+    <tr><td>4</td><td>severity_weight</td><td>DECIMAL</td><td>3,2</td><td>-</td><td>-</td><td>Null</td><td>NULL</td><td>Bobot keparahan kondisi</td></tr>
+    <tr><td>5</td><td>clinical_focus</td><td>VARCHAR</td><td>255</td><td>-</td><td>-</td><td>Null</td><td>NULL</td><td>Fokus penanganan klinis kelas</td></tr>
+  </tbody>
+</table>
+
+<h3>Tabel: Analysis</h3>
+<table>
+  <thead><tr><th>No</th><th>Nama Field</th><th>Tipe Data</th><th>Ukuran</th><th>PK</th><th>FK</th><th>Null</th><th>Default</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="pk">analysis_id</td><td>VARCHAR</td><td>28</td><td>Yes</td><td>-</td><td>Not Null</td><td>auto-ID</td><td>Identitas unik analisis</td></tr>
+    <tr><td>2</td><td class="fk">user_id</td><td>VARCHAR</td><td>28</td><td>-</td><td>User.user_id</td><td>Not Null</td><td>-</td><td>Pemilik analisis</td></tr>
+    <tr><td>3</td><td class="fk">predicted_label</td><td>VARCHAR</td><td>20</td><td>-</td><td>SkinConditionClass.class_key</td><td>Null</td><td>NULL</td><td>Kelas kulit dominan hasil prediksi</td></tr>
+    <tr><td>4</td><td>name</td><td>VARCHAR</td><td>100</td><td>-</td><td>-</td><td>Not Null</td><td>-</td><td>Nama klien (denormalisasi)</td></tr>
+    <tr><td>5</td><td>email</td><td>VARCHAR</td><td>150</td><td>-</td><td>-</td><td>Not Null</td><td>-</td><td>Email klien (denormalisasi)</td></tr>
+    <tr><td>6</td><td>event_date</td><td>DATETIME</td><td>-</td><td>-</td><td>-</td><td>Null</td><td>NULL</td><td>Tanggal acara klien</td></tr>
+    <tr><td>7</td><td>image_url</td><td>TEXT</td><td>-</td><td>-</td><td>-</td><td>Null</td><td>NULL</td><td>Foto wajah (base64 dataURL)</td></tr>
+    <tr><td>8</td><td>result</td><td>VARCHAR</td><td>50</td><td>-</td><td>-</td><td>Null</td><td>NULL</td><td>Label hasil ringkas</td></tr>
+    <tr><td>9</td><td>confidence_score</td><td>DECIMAL</td><td>5,4</td><td>-</td><td>-</td><td>Null</td><td>NULL</td><td>Skor keyakinan kelas dominan (0-1)</td></tr>
+    <tr><td>10</td><td>generated_summary</td><td>TEXT</td><td>-</td><td>-</td><td>-</td><td>Null</td><td>NULL</td><td>Ringkasan naratif hasil</td></tr>
+    <tr><td>11</td><td>clinical_notes</td><td>TEXT</td><td>-</td><td>-</td><td>-</td><td>Null</td><td>NULL</td><td>Catatan klinis berbasis tingkat keyakinan</td></tr>
+    <tr><td>12</td><td>clinical_focus</td><td>VARCHAR</td><td>255</td><td>-</td><td>-</td><td>Null</td><td>NULL</td><td>Fokus klinis hasil analisis</td></tr>
+    <tr><td>13</td><td>summary_type</td><td>ENUM</td><td>single_dominant,dual_blend,multi_blend</td><td>-</td><td>-</td><td>Null</td><td>NULL</td><td>Tipe penyusunan ringkasan</td></tr>
+    <tr><td>14</td><td>catatan_qayra</td><td>TEXT</td><td>-</td><td>-</td><td>-</td><td>Null</td><td>''</td><td>Catatan tambahan dari Admin</td></tr>
+    <tr><td>15</td><td>created_at</td><td>DATETIME</td><td>-</td><td>-</td><td>-</td><td>Null</td><td>now()</td><td>Waktu analisis dibuat</td></tr>
+    <tr><td>16</td><td>updated_at</td><td>DATETIME</td><td>-</td><td>-</td><td>-</td><td>Null</td><td>NULL</td><td>Waktu pembaruan catatan</td></tr>
+  </tbody>
+</table>
+
+<h3>Tabel: AnalysisClassProbability (Junction Many-to-Many)</h3>
+<table>
+  <thead><tr><th>No</th><th>Nama Field</th><th>Tipe Data</th><th>Ukuran</th><th>PK</th><th>FK</th><th>Null</th><th>Default</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="pk fk">analysis_id</td><td>VARCHAR</td><td>28</td><td>Yes</td><td>Analysis.analysis_id</td><td>Not Null</td><td>-</td><td>Analisis terkait</td></tr>
+    <tr><td>2</td><td class="pk fk">class_key</td><td>VARCHAR</td><td>20</td><td>Yes</td><td>SkinConditionClass.class_key</td><td>Not Null</td><td>-</td><td>Kelas kulit terkait</td></tr>
+    <tr><td>3</td><td>probability</td><td>DECIMAL</td><td>5,4</td><td>-</td><td>-</td><td>Not Null</td><td>0</td><td>Probabilitas kelas pada analisis</td></tr>
+    <tr><td>4</td><td>rank</td><td>INT</td><td>-</td><td>-</td><td>-</td><td>Not Null</td><td>-</td><td>Peringkat kelas (1 = tertinggi)</td></tr>
+  </tbody>
+</table>
+
+<h3>Tabel: TreatmentPriority</h3>
+<table>
+  <thead><tr><th>No</th><th>Nama Field</th><th>Tipe Data</th><th>Ukuran</th><th>PK</th><th>FK</th><th>Null</th><th>Default</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="pk fk">analysis_id</td><td>VARCHAR</td><td>28</td><td>Yes</td><td>Analysis.analysis_id</td><td>Not Null</td><td>-</td><td>Analisis terkait</td></tr>
+    <tr><td>2</td><td class="pk">sequence_no</td><td>INT</td><td>-</td><td>Yes</td><td>-</td><td>Not Null</td><td>-</td><td>Urutan prioritas</td></tr>
+    <tr><td>3</td><td>description</td><td>VARCHAR</td><td>255</td><td>-</td><td>-</td><td>Not Null</td><td>-</td><td>Isi prioritas perawatan</td></tr>
+  </tbody>
+</table>
+
+<h3>Tabel: PreparationStep</h3>
+<table>
+  <thead><tr><th>No</th><th>Nama Field</th><th>Tipe Data</th><th>Ukuran</th><th>PK</th><th>FK</th><th>Null</th><th>Default</th><th>Deskripsi</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="pk fk">analysis_id</td><td>VARCHAR</td><td>28</td><td>Yes</td><td>Analysis.analysis_id</td><td>Not Null</td><td>-</td><td>Analisis terkait</td></tr>
+    <tr><td>2</td><td class="pk">phase</td><td>ENUM</td><td>7_days_before,3_days_before,day_of_makeup</td><td>Yes</td><td>-</td><td>Not Null</td><td>-</td><td>Fase persiapan</td></tr>
+    <tr><td>3</td><td class="pk">sequence_no</td><td>INT</td><td>-</td><td>Yes</td><td>-</td><td>Not Null</td><td>-</td><td>Urutan langkah dalam fase</td></tr>
+    <tr><td>4</td><td>description</td><td>VARCHAR</td><td>255</td><td>-</td><td>-</td><td>Not Null</td><td>-</td><td>Isi langkah persiapan</td></tr>
+  </tbody>
+</table>
+
+</body>
+</html>

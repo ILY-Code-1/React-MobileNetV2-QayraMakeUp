@@ -1,0 +1,96 @@
+@startuml
+title Conceptual Domain Model - QAYRA FACIAL ANALYZING
+
+class User {
+  - id : String
+  - name : String
+  - email : String
+  - role : Role
+  - status : Status
+  - eventDate : String
+  - createdAt : String
+  - updatedAt : String
+  - lastLoginAt : String
+  + login()
+  + logout()
+}
+
+class Analysis {
+  - id : String
+  - userId : String
+  - name : String
+  - email : String
+  - eventDate : String
+  - result : String
+  - imageUrl : String
+  - confidenceScore : Float
+  - generatedSummary : String
+  - clinicalNotes : String
+  - clinicalFocus : String
+  - summaryType : SummaryType
+  - catatan_qayra : String
+  - createdAt : String
+  + analyzeImage()
+  + generateReport()
+}
+
+class SkinConditionClass {
+  - key : String
+  - label : String
+  - index : Integer
+  - severityWeight : Float
+  - clinicalFocus : String
+}
+
+class ClassProbability {
+  - probability : Float
+  - rank : Integer
+}
+
+class TreatmentPriority {
+  - sequence : Integer
+  - description : String
+}
+
+class PreparationStep {
+  - phase : Phase
+  - sequence : Integer
+  - description : String
+}
+
+enum Role {
+  admin
+  user
+}
+
+enum Status {
+  active
+  inactive
+  pending
+}
+
+enum SummaryType {
+  single_dominant
+  dual_blend
+  multi_blend
+}
+
+enum Phase {
+  7_days_before
+  3_days_before
+  day_of_makeup
+}
+
+User "1" *-- "0..*" Analysis : memiliki >
+Analysis "1" *-- "1..*" ClassProbability : menghasilkan >
+ClassProbability "0..*" --> "1" SkinConditionClass : mengacu >
+Analysis "0..*" --> "1" SkinConditionClass : terklasifikasi sebagai >
+Analysis "1" *-- "0..*" TreatmentPriority : merekomendasikan >
+Analysis "1" *-- "0..*" PreparationStep : memandu >
+
+User --> Role
+User --> Status
+Analysis --> SummaryType
+PreparationStep --> Phase
+
+@enduml

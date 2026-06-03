@@ -1,0 +1,224 @@
+' == Activity: UC01 Login ==
+@startuml
+title Activity - UC01 Login
+|Pengguna|
+start
+:Membuka halaman Login;
+:Memasukkan email dan password;
+:Menekan tombol LOGIN;
+|Sistem QAYRA|
+:Memverifikasi email dan password;
+if (Kredensial valid & akun aktif?) then ([ya])
+  :Menyimpan sesi pengguna;
+  :Mengarahkan ke Dashboard sesuai peran;
+else ([tidak])
+  :Menampilkan pesan "Email atau password salah";
+  stop
+endif
+|Pengguna|
+:Melihat Dashboard;
+stop
+@enduml
+
+' == Activity: UC02 Logout ==
+@startuml
+title Activity - UC02 Logout
+|Pengguna|
+start
+:Menekan ikon Logout;
+:Mengonfirmasi keluar aplikasi;
+if (Konfirmasi keluar?) then ([ya])
+  |Sistem QAYRA|
+  :Menghapus sesi pengguna;
+  :Mengarahkan ke halaman Login;
+  |Pengguna|
+  :Melihat halaman Login;
+  stop
+else ([tidak])
+  |Pengguna|
+  :Tetap berada di aplikasi;
+  stop
+endif
+@enduml
+
+' == Activity: UC03 Melakukan Analisis Kulit Wajah ==
+@startuml
+title Activity - UC03 Melakukan Analisis Kulit Wajah
+|Client|
+start
+:Membuka halaman Kamera;
+:Mengambil foto wajah atau mengunggah gambar;
+:Meninjau pratinjau foto;
+if (Foto sesuai?) then ([ya])
+  :Mengonfirmasi foto;
+  |Sistem QAYRA|
+  :Memproses gambar dengan model MobileNetV2;
+  :Menghasilkan kondisi kulit & rekomendasi;
+  :Menyimpan hasil analisis;
+  |Client|
+  :Melihat halaman Detail Hasil Analisis;
+  stop
+else ([tidak])
+  :Mengambil ulang foto;
+  stop
+endif
+@enduml
+
+' == Activity: UC04 Melihat Riwayat Analisis ==
+@startuml
+title Activity - UC04 Melihat Riwayat Analisis
+|Client|
+start
+:Membuka halaman Riwayat;
+|Sistem QAYRA|
+:Mengambil daftar analisis milik Client;
+if (Ada riwayat analisis?) then ([ya])
+  :Menampilkan daftar analisis terurut terbaru;
+  |Client|
+  :Memilih salah satu riwayat;
+  :Membuka Detail Hasil Analisis;
+  stop
+else ([tidak])
+  :Menampilkan pesan "Belum ada riwayat analisis";
+  |Client|
+  stop
+endif
+@enduml
+
+' == Activity: UC05 Melihat Detail Hasil Analisis ==
+@startuml
+title Activity - UC05 Melihat Detail Hasil Analisis
+|Pengguna|
+start
+:Memilih sebuah hasil analisis;
+|Sistem QAYRA|
+:Mengambil data analisis berdasarkan ID;
+if (Data ditemukan?) then ([ya])
+  :Menampilkan kondisi kulit & tingkat keyakinan;
+  :Menampilkan rekomendasi & protokol persiapan;
+  :Menampilkan distribusi probabilitas & foto;
+  |Pengguna|
+  :Membaca detail hasil analisis;
+  stop
+else ([tidak])
+  :Menampilkan pesan "Data tidak ditemukan";
+  |Pengguna|
+  stop
+endif
+@enduml
+
+' == Activity: UC06 Mengunduh Laporan PDF ==
+@startuml
+title Activity - UC06 Mengunduh Laporan PDF
+|Pengguna|
+start
+:Membuka Detail Hasil Analisis;
+:Menekan tombol Download;
+|Sistem QAYRA|
+:Menyusun laporan PDF dari data analisis;
+if (Laporan berhasil dibuat?) then ([ya])
+  :Mengunduh berkas PDF ke perangkat;
+  |Pengguna|
+  :Menyimpan/membuka laporan PDF;
+  stop
+else ([tidak])
+  :Menampilkan pesan "Gagal mengunduh";
+  |Pengguna|
+  stop
+endif
+@enduml
+
+' == Activity: UC07 Menambahkan Catatan Qayra ==
+@startuml
+title Activity - UC07 Menambahkan Catatan Qayra
+|Admin|
+start
+:Membuka Detail Hasil Analisis;
+:Menulis catatan pada kolom Catatan Qayra;
+:Menekan tombol Simpan Catatan;
+|Sistem QAYRA|
+:Memperbarui catatan pada data analisis;
+if (Penyimpanan berhasil?) then ([ya])
+  :Menampilkan notifikasi "Catatan Tersimpan";
+  |Admin|
+  stop
+else ([tidak])
+  :Menampilkan notifikasi "Gagal Menyimpan";
+  |Admin|
+  stop
+endif
+@enduml
+
+' == Activity: UC08 Melihat Dashboard Admin ==
+@startuml
+title Activity - UC08 Melihat Dashboard Admin
+|Admin|
+start
+:Membuka Dashboard Admin;
+|Sistem QAYRA|
+:Mengambil data user dan data analisis;
+:Menghitung total Client, total Admin, total Analisis;
+:Menampilkan kartu statistik;
+:Menampilkan daftar Analisis Terbaru;
+|Admin|
+if (Memilih analisis terbaru?) then ([ya])
+  :Membuka Detail Hasil Analisis;
+  stop
+else ([tidak])
+  :Tetap di Dashboard;
+  stop
+endif
+@enduml
+
+' == Activity: UC09 Mengelola Data User ==
+@startuml
+title Activity - UC09 Mengelola Data User
+|Admin|
+start
+:Membuka halaman Manajemen User;
+:Memilih aksi pengelolaan;
+switch (Aksi?)
+case ([Tambah])
+  :Mengisi form data user baru;
+case ([Edit])
+  :Mengubah data user terpilih;
+case ([Hapus])
+  :Mengonfirmasi penghapusan user;
+endswitch
+|Sistem QAYRA|
+:Memvalidasi & menyimpan perubahan data user;
+if (Operasi berhasil?) then ([ya])
+  :Memperbarui daftar user;
+  |Admin|
+  :Melihat daftar user terbaru;
+  stop
+else ([tidak])
+  :Menampilkan pesan kesalahan;
+  |Admin|
+  stop
+endif
+@enduml
+
+' == Activity: UC10 Mengelola Data Analisis ==
+@startuml
+title Activity - UC10 Mengelola Data Analisis
+|Admin|
+start
+:Membuka halaman Hasil Analisis;
+:Mencari / menelusuri data klien;
+:Memilih aksi (Detail atau Hapus);
+if (Aksi Hapus?) then ([ya])
+  :Mengonfirmasi penghapusan;
+  |Sistem QAYRA|
+  :Menghapus data analisis terpilih;
+  :Memperbarui daftar analisis;
+  |Admin|
+  stop
+else ([tidak / Detail])
+  |Sistem QAYRA|
+  :Membuka Detail Hasil Analisis;
+  |Admin|
+  :Meninjau hasil analisis;
+  stop
+endif
+@enduml

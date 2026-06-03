@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desain Basis Data Firestore (NoSQL) - QAYRA FACIAL ANALYZING</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #222; max-width: 1100px; margin: 0 auto; padding: 32px; background: #fafafa; }
+  h1 { color: #000; border-bottom: 4px solid #C68E2D; padding-bottom: 10px; }
+  h2 { color: #C68E2D; margin-top: 40px; border-left: 5px solid #C68E2D; padding-left: 12px; }
+  h3 { color: #333; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; font-size: 14px; vertical-align: top; }
+  th { background: #C68E2D; color: #fff; }
+  tr:nth-child(even) { background: #faf6ef; }
+  code { background: #f0eadf; padding: 1px 5px; border-radius: 4px; color: #8a5a00; }
+  pre.plantuml { background: #2b2b2b; color: #e6e6e6; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+  ul.tree { list-style: none; }
+  ul.tree li { position: relative; padding: 4px 0 4px 22px; }
+  ul.tree li::before { content: "📁"; position: absolute; left: 0; }
+  ul.tree li.field::before { content: "•"; color: #C68E2D; font-weight: bold; }
+  ul.tree li.doc::before { content: "📄"; }
+  .badge { display: inline-block; background: #000; color: #C68E2D; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+  .note { background: #fff8e7; border-left: 4px solid #C68E2D; padding: 12px 16px; margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<h1>Desain Basis Data Firestore (NoSQL)</h1>
+<p><strong>Aplikasi:</strong> QAYRA FACIAL ANALYZING — by Qayra Make Up<br>
+<strong>Teknologi:</strong> Google Cloud Firestore (NoSQL Document Database) + React + TensorFlow.js (MobileNetV2/TFLite)<br>
+<strong>Domain:</strong> Analisis kondisi kulit wajah klien untuk persiapan makeup acara.</p>
+
+<!-- =================================================================== -->
+<h2>1. Strategi Pemodelan NoSQL</h2>
+<p>
+Aplikasi ini menggunakan <strong>strategi kombinasi: Referencing + Embedding + Denormalisasi</strong>, yang
+diterapkan pada dua koleksi utama, yaitu <code>users_qayra</code> dan <code>analysis_qayra</code>.
+</p>
+<ul>
+  <li>
+    <strong>Referencing (antar koleksi):</strong> Setiap dokumen pada koleksi <code>analysis_qayra</code> menyimpan
+    field <code>userId</code> yang merujuk ke <em>document ID</em> dokumen pada koleksi <code>users_qayra</code>.
+    Pendekatan ini dipilih karena seorang Client dapat memiliki <em>banyak</em> riwayat analisis (relasi one-to-many),
+    sehingga menyematkan seluruh analisis ke dalam dokumen user akan membuat dokumen membengkak. Fungsi
+    <code>getAnalysisByUser(userId)</code> melakukan query <code>where('userId','==',userId)</code> untuk mengambil
+    riwayat milik Client tertentu.
+  </li>
+  <li>
+    <strong>Embedding (di dalam dokumen):</strong> Hasil inferensi model MobileNetV2 yang bersifat kompleks disematkan
+    langsung di dalam dokumen analisis, karena selalu dibaca bersamaan dengan analisisnya dan tidak pernah di-query
+    secara mandiri. Contoh field tersematkan: array <code>topClasses</code> (objek <em>key/label/probability/rank</em>),
+    array <code>treatmentPriority</code>, array <code>modelOutputRaw</code>, dan objek bersarang
+    <code>preparationProtocol</code> (berisi sub-array <code>7_days_before</code>, <code>3_days_before</code>,
+    <code>day_of_makeup</code>).
+  </li>
+  <li>
+    <strong>Denormalisasi:</strong> Dokumen <code>analysis_qayra</code> menyalin <code>name</code>, <code>email</code>,
+    dan <code>eventDate</code> milik Client pada saat analisis dibuat. Tujuannya agar halaman <em>Hasil Analisis</em>
+    milik Admin dapat menampilkan identitas klien tanpa harus membaca dokumen user satu per satu (mengurangi jumlah
+    pembacaan dokumen Firestore).
+  </li>
+</ul>
+<div class="note">
+  <strong>Catatan keamanan domain:</strong> Autentikasi tidak menggunakan Firebase Authentication, melainkan
+  Firestore-only. Field <code>password</code> disimpan dalam bentuk <strong>hash bcrypt</strong> di dalam dokumen
+  <code>users_qayra</code> dan tidak pernah dikembalikan ke klien (di-strip oleh <code>stripPassword()</code>).
+</div>
+
+<!-- =================================================================== -->
+<h2>2. Struktur Koleksi (Collection Structure)</h2>
+<ul class="tree">
+  <li><strong>users_qayra</strong> <span class="badge">collection</span>
+    <ul class="tree">
+      <li class="doc"><strong>{userId}</strong> — contoh: <code>3kZ9aQpLm2bN7dRfYx1T</code> (auto-ID)
+        <ul class="tree">
+          <li class="field">name : string — "Salsabila Putri"</li>
+          <li class="field">email : string — "salsabila@gmail.com"</li>
+          <li class="field">password : string (bcrypt hash) — "$2a$10$..."</li>
+          <li class="field">role : string — "user" | "admin"</li>
+          <li class="field">status : string — "active" | "inactive" | "pending"</li>
+          <li class="field">eventDate : string (ISO) — "2026-07-20T00:00:00.000Z"</li>
+          <li class="field">createdAt : string (ISO)</li>
+          <li class="field">updatedAt : string (ISO)</li>
+          <li class="field">lastLoginAt : string (ISO)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>analysis_qayra</strong> <span class="badge">collection</span>
+    <ul class="tree">
+      <li class="doc"><strong>{analysisId}</strong> — contoh: <code>Ab12Cd34Ef56Gh78Ij90</code> (auto-ID)
+        <ul class="tree">
+          <li class="field">userId : string &rarr; <em>referensi</em> ke <code>users_qayra/{userId}</code> — "3kZ9aQpLm2bN7dRfYx1T"</li>
+          <li class="field">name : string (denormalisasi) — "Salsabila Putri"</li>
+          <li class="field">email : string (denormalisasi) — "salsabila@gmail.com"</li>
+          <li class="field">eventDate : string (denormalisasi)</li>
+          <li class="field">imageUrl : string (base64 dataURL foto)</li>
+          <li class="field">result : string — "Oily Skin"</li>
+          <li class="field">predictedLabel : string — "oily"</li>
+          <li class="field">predictedLabelDisplay : string — "Oily Skin"</li>
+          <li class="field">confidenceScore : number — 0.84</li>
+          <li class="field">modelOutputRaw : number[] — [0.05, 0.03, 0.06, 0.84, 0.02]</li>
+          <li class="field">generatedSummary : string</li>
+          <li class="field">clinicalNotes : string</li>
+          <li class="field">summaryType : string — "single_dominant"</li>
+          <li class="field">primaryClass : string — "oily"</li>
+          <li class="field">secondaryClass : string — "normal"</li>
+          <li class="field">tertiaryClass : string — "acne"</li>
+          <li class="field">clinicalFocus : string</li>
+          <li class="field">treatmentPriority : string[] (embedded array)</li>
+          <li class="field">preparationProtocol : map (embedded)
+            <ul class="tree">
+              <li class="field">7_days_before : string[]</li>
+              <li class="field">3_days_before : string[]</li>
+              <li class="field">day_of_makeup : string[]</li>
+            </ul>
+          </li>
+          <li class="field">topClasses : array&lt;map&gt; (embedded) — { key, label, probability, rank }</li>
+          <li class="field">catatan_qayra : string (catatan Admin)</li>
+          <li class="field">createdAt : string (ISO)</li>
+          <li class="field">updatedAt : string (ISO, saat catatan diperbarui)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<!-- =================================================================== -->
+<h2>3. Struktur Logis (UML Object Diagram)</h2>
+<p>Object diagram berikut menggambarkan contoh dokumen nyata dari kedua koleksi beserta relasi referensi <code>userId</code>.</p>
+<pre class="plantuml">
+@startuml
+object "users_qayra : 3kZ9aQpLm2bN7dRfYx1T" as User {
+  name = "Salsabila Putri"
+  email = "salsabila@gmail.com"
+  password = "$2a$10$Q9...hash"
+  role = "user"
+  status = "active"
+  eventDate = "2026-07-20T00:00:00.000Z"
+  createdAt = "2026-06-01T08:30:00.000Z"
+  lastLoginAt = "2026-06-03T09:12:00.000Z"
+}
+
+object "analysis_qayra : Ab12Cd34Ef56Gh78Ij90" as Analysis {
+  userId = "3kZ9aQpLm2bN7dRfYx1T"
+  name = "Salsabila Putri"
+  email = "salsabila@gmail.com"
+  eventDate = "2026-07-20T00:00:00.000Z"
+  result = "Oily Skin"
+  predictedLabel = "oily"
+  predictedLabelDisplay = "Oily Skin"
+  confidenceScore = 0.84
+  modelOutputRaw = [0.05,0.03,0.06,0.84,0.02]
+  summaryType = "single_dominant"
+  primaryClass = "oily"
+  secondaryClass = "normal"
+  catatan_qayra = "Klien cocok base matte"
+  createdAt = "2026-06-03T09:20:00.000Z"
+}
+
+object "preparationProtocol (embedded)" as Prep {
+  7_days_before = ["Kurangi gorengan", "Rutin double cleansing"]
+  3_days_before = ["Clay mask 2x", "Hindari produk baru"]
+  day_of_makeup = ["Toner oil-control", "Primer pori"]
+}
+
+object "topClasses[0] (embedded)" as Top {
+  key = "oily"
+  label = "Oily Skin"
+  probability = 0.84
+  rank = 1
+}
+
+User <-- Analysis : userId (reference)
+Analysis *-- Prep : embedded
+Analysis *-- Top : embedded
+@enduml
+</pre>
+
+<!-- =================================================================== -->
+<h2>4. Spesifikasi Basis Data</h2>
+<table>
+  <thead>
+    <tr><th>No</th><th>Nama Field</th><th>Tipe Data</th><th>Koleksi</th><th>Deskripsi</th><th>Constraint / Index</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>{userId} (Document ID)</td><td>string (auto-ID)</td><td>users_qayra</td><td>Identitas unik dokumen user</td><td>Primary Key, unique, indexed</td></tr>
+    <tr><td>2</td><td>name</td><td>string</td><td>users_qayra</td><td>Nama lengkap user/klien</td><td>required, min 2 karakter</td></tr>
+    <tr><td>3</td><td>email</td><td>string</td><td>users_qayra</td><td>Email login (disimpan lowercase)</td><td>required, unique, indexed (query login)</td></tr>
+    <tr><td>4</td><td>password</td><td>string</td><td>users_qayra</td><td>Hash bcrypt password (cost 10)</td><td>required, di-strip saat dibaca</td></tr>
+    <tr><td>5</td><td>role</td><td>string (enum)</td><td>users_qayra</td><td>Peran: "admin" atau "user"</td><td>required, indexed (filter role)</td></tr>
+    <tr><td>6</td><td>status</td><td>string (enum)</td><td>users_qayra</td><td>"active" / "inactive" / "pending"</td><td>required, indexed (filter status)</td></tr>
+    <tr><td>7</td><td>eventDate</td><td>string (ISO)</td><td>users_qayra</td><td>Tanggal acara klien (kosong utk admin)</td><td>optional, harus &gt; hari ini</td></tr>
+    <tr><td>8</td><td>createdAt</td><td>string (ISO)</td><td>users_qayra</td><td>Waktu pembuatan akun</td><td>auto-generated</td></tr>
+    <tr><td>9</td><td>updatedAt</td><td>string (ISO)</td><td>users_qayra</td><td>Waktu pembaruan terakhir</td><td>auto-generated</td></tr>
+    <tr><td>10</td><td>lastLoginAt</td><td>string (ISO)</td><td>users_qayra</td><td>Waktu login terakhir</td><td>auto-updated saat login</td></tr>
+    <tr><td>11</td><td>{analysisId} (Document ID)</td><td>string (auto-ID)</td><td>analysis_qayra</td><td>Identitas unik dokumen analisis</td><td>Primary Key, unique, indexed</td></tr>
+    <tr><td>12</td><td>userId</td><td>string</td><td>analysis_qayra</td><td>Referensi pemilik analisis</td><td>FK &rarr; users_qayra.{id}, indexed (query riwayat)</td></tr>
+    <tr><td>13</td><td>name</td><td>string</td><td>analysis_qayra</td><td>Nama klien (denormalisasi)</td><td>required</td></tr>
+    <tr><td>14</td><td>email</td><td>string</td><td>analysis_qayra</td><td>Email klien (denormalisasi)</td><td>required</td></tr>
+    <tr><td>15</td><td>eventDate</td><td>string (ISO)</td><td>analysis_qayra</td><td>Tanggal acara (denormalisasi)</td><td>optional</td></tr>
+    <tr><td>16</td><td>imageUrl</td><td>string (base64)</td><td>analysis_qayra</td><td>Foto wajah yang dianalisis</td><td>optional</td></tr>
+    <tr><td>17</td><td>result</td><td>string</td><td>analysis_qayra</td><td>Label hasil ringkas</td><td>optional</td></tr>
+    <tr><td>18</td><td>predictedLabel</td><td>string</td><td>analysis_qayra</td><td>Key kelas dominan (acne/dry/normal/oily/sensitive)</td><td>optional</td></tr>
+    <tr><td>19</td><td>predictedLabelDisplay</td><td>string</td><td>analysis_qayra</td><td>Label tampilan kelas dominan</td><td>optional</td></tr>
+    <tr><td>20</td><td>confidenceScore</td><td>number (0..1)</td><td>analysis_qayra</td><td>Skor keyakinan kelas dominan</td><td>optional</td></tr>
+    <tr><td>21</td><td>modelOutputRaw</td><td>number[] (len 5)</td><td>analysis_qayra</td><td>Probabilitas mentah 5 kelas</td><td>embedded array</td></tr>
+    <tr><td>22</td><td>generatedSummary</td><td>string</td><td>analysis_qayra</td><td>Ringkasan naratif hasil</td><td>optional</td></tr>
+    <tr><td>23</td><td>clinicalNotes</td><td>string</td><td>analysis_qayra</td><td>Catatan klinis sesuai tingkat keyakinan</td><td>optional</td></tr>
+    <tr><td>24</td><td>summaryType</td><td>string (enum)</td><td>analysis_qayra</td><td>single_dominant / dual_blend / multi_blend</td><td>optional</td></tr>
+    <tr><td>25</td><td>primaryClass</td><td>string</td><td>analysis_qayra</td><td>Kelas kulit utama</td><td>optional</td></tr>
+    <tr><td>26</td><td>secondaryClass</td><td>string</td><td>analysis_qayra</td><td>Kelas kulit sekunder</td><td>optional</td></tr>
+    <tr><td>27</td><td>tertiaryClass</td><td>string</td><td>analysis_qayra</td><td>Kelas kulit tersier</td><td>optional</td></tr>
+    <tr><td>28</td><td>clinicalFocus</td><td>string</td><td>analysis_qayra</td><td>Fokus penanganan klinis</td><td>optional</td></tr>
+    <tr><td>29</td><td>treatmentPriority</td><td>string[]</td><td>analysis_qayra</td><td>Daftar prioritas perawatan</td><td>embedded array</td></tr>
+    <tr><td>30</td><td>preparationProtocol</td><td>map</td><td>analysis_qayra</td><td>Protokol persiapan (7 hari / 3 hari / hari-H)</td><td>embedded map of arrays</td></tr>
+    <tr><td>31</td><td>topClasses</td><td>array&lt;map&gt;</td><td>analysis_qayra</td><td>Peringkat kelas { key,label,probability,rank }</td><td>embedded array</td></tr>
+    <tr><td>32</td><td>catatan_qayra</td><td>string</td><td>analysis_qayra</td><td>Catatan tambahan dari Admin</td><td>optional, editable Admin</td></tr>
+    <tr><td>33</td><td>createdAt</td><td>string (ISO)</td><td>analysis_qayra</td><td>Waktu analisis dibuat</td><td>auto-generated, sort desc</td></tr>
+    <tr><td>34</td><td>updatedAt</td><td>string (ISO)</td><td>analysis_qayra</td><td>Waktu catatan diperbarui</td><td>auto-updated</td></tr>
+  </tbody>
+</table>
+
+</body>
+</html>

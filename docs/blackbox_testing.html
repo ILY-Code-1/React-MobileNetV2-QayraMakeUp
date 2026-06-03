@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Black Box Testing - QAYRA FACIAL ANALYZING</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #222; max-width: 1300px; margin: 0 auto; padding: 32px; background: #fafafa; }
+  h1 { color: #000; border-bottom: 4px solid #C68E2D; padding-bottom: 10px; }
+  p.sub { color: #555; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; font-size: 13px; vertical-align: top; }
+  th { background: #C68E2D; color: #fff; position: sticky; top: 0; }
+  tr:nth-child(even) { background: #faf6ef; }
+  .pass { color: #15803d; font-weight: bold; }
+  .fail { color: #b91c1c; font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>Black Box Testing</h1>
+<p class="sub"><strong>Aplikasi:</strong> QAYRA FACIAL ANALYZING — by Qayra Make Up. Pengujian fungsional berbasis input/output tanpa melihat struktur kode. Mencakup 10 use case (UC01–UC10), masing-masing minimal satu skenario sukses dan satu skenario gagal.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>No</th><th>Deskripsi Pengujian</th><th>Langkah Uji</th><th>Data Uji</th>
+      <th>Hasil yang Diharapkan</th><th>Hasil Pengujian</th><th>Status</th><th>Keterangan</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- UC01 -->
+    <tr>
+      <td>1</td><td>UC01 — Login dengan kredensial valid</td>
+      <td>1. Buka halaman Login<br>2. Isi email &amp; password benar<br>3. Klik LOGIN</td>
+      <td>email: admin@qayra.com<br>password: admin123</td>
+      <td>Masuk ke Dashboard sesuai peran &amp; notifikasi "Login Berhasil"</td>
+      <td>Diarahkan ke Dashboard, sesi tersimpan</td>
+      <td class="pass">Valid</td><td>lastLoginAt diperbarui</td>
+    </tr>
+    <tr>
+      <td>2</td><td>UC01 — Login dengan password salah</td>
+      <td>1. Buka Login<br>2. Isi email benar, password salah<br>3. Klik LOGIN</td>
+      <td>email: admin@qayra.com<br>password: salah99</td>
+      <td>Muncul pesan "Email atau password salah."</td>
+      <td>Login ditolak, pesan error tampil</td>
+      <td class="pass">Valid</td><td>Skenario gagal</td>
+    </tr>
+    <tr>
+      <td>3</td><td>UC01 — Login akun nonaktif</td>
+      <td>1. Login dengan akun berstatus inactive</td>
+      <td>email: klien.lama@gmail.com<br>password: benar</td>
+      <td>Pesan "Akun tidak aktif. Hubungi administrator."</td>
+      <td>Akses ditolak</td>
+      <td class="pass">Valid</td><td>Validasi status</td>
+    </tr>
+    <!-- UC02 -->
+    <tr>
+      <td>4</td><td>UC02 — Logout terkonfirmasi</td>
+      <td>1. Klik ikon Logout<br>2. Pilih "Ya, Keluar"</td>
+      <td>Sesi aktif</td>
+      <td>Sesi dihapus, diarahkan ke halaman Login</td>
+      <td>Kembali ke Login, cookie terhapus</td>
+      <td class="pass">Valid</td><td>—</td>
+    </tr>
+    <tr>
+      <td>5</td><td>UC02 — Logout dibatalkan</td>
+      <td>1. Klik Logout<br>2. Pilih "Batal"</td>
+      <td>Sesi aktif</td>
+      <td>Tetap berada di aplikasi, sesi tidak berubah</td>
+      <td>Tetap di halaman semula</td>
+      <td class="pass">Valid</td><td>Skenario gagal/batal</td>
+    </tr>
+    <!-- UC03 -->
+    <tr>
+      <td>6</td><td>UC03 — Analisis wajah dari foto kamera</td>
+      <td>1. Buka Kamera<br>2. Ambil foto<br>3. Konfirmasi foto</td>
+      <td>Foto wajah jelas</td>
+      <td>Sistem memproses, hasil tersimpan, diarahkan ke Detail</td>
+      <td>Hasil kondisi kulit &amp; skor tampil di Detail</td>
+      <td class="pass">Valid</td><td>Inferensi MobileNetV2</td>
+    </tr>
+    <tr>
+      <td>7</td><td>UC03 — Konfirmasi tanpa foto / sesi user kosong</td>
+      <td>1. Buka Kamera tanpa mengambil foto<br>2. Tekan konfirmasi</td>
+      <td>capturedPhoto = null</td>
+      <td>Pesan "Foto atau data user tidak tersedia."</td>
+      <td>Proses dibatalkan, error tampil</td>
+      <td class="pass">Valid</td><td>Skenario gagal</td>
+    </tr>
+    <tr>
+      <td>8</td><td>UC03 — Unggah gambar dari galeri</td>
+      <td>1. Buka Kamera<br>2. Klik Upload<br>3. Pilih gambar<br>4. Konfirmasi</td>
+      <td>file: wajah.jpg</td>
+      <td>Gambar dianalisis &amp; hasil tersimpan</td>
+      <td>Hasil tampil di Detail</td>
+      <td class="pass">Valid</td><td>Alur unggah</td>
+    </tr>
+    <!-- UC04 -->
+    <tr>
+      <td>9</td><td>UC04 — Melihat riwayat (ada data)</td>
+      <td>1. Login sebagai Client<br>2. Buka Riwayat</td>
+      <td>Client memiliki 3 analisis</td>
+      <td>Daftar analisis tampil terurut terbaru</td>
+      <td>3 baris riwayat tampil</td>
+      <td class="pass">Valid</td><td>—</td>
+    </tr>
+    <tr>
+      <td>10</td><td>UC04 — Riwayat kosong</td>
+      <td>1. Login Client baru<br>2. Buka Riwayat</td>
+      <td>Client tanpa analisis</td>
+      <td>Pesan "Belum ada riwayat analisis"</td>
+      <td>Empty state tampil</td>
+      <td class="pass">Valid</td><td>Skenario gagal/kosong</td>
+    </tr>
+    <!-- UC05 -->
+    <tr>
+      <td>11</td><td>UC05 — Membuka detail analisis valid</td>
+      <td>1. Pilih satu analisis dari daftar</td>
+      <td>id: Ab12Cd34Ef56</td>
+      <td>Detail kondisi kulit, skor, rekomendasi, foto tampil</td>
+      <td>Seluruh kartu detail tampil</td>
+      <td class="pass">Valid</td><td>—</td>
+    </tr>
+    <tr>
+      <td>12</td><td>UC05 — Detail dengan ID tidak ada</td>
+      <td>1. Akses URL /analysis/{id-acak}</td>
+      <td>id: XXXX-tidak-ada</td>
+      <td>Pesan "Data Tidak Ditemukan"</td>
+      <td>Halaman not found tampil</td>
+      <td class="pass">Valid</td><td>Skenario gagal</td>
+    </tr>
+    <!-- UC06 -->
+    <tr>
+      <td>13</td><td>UC06 — Unduh laporan PDF</td>
+      <td>1. Buka Detail<br>2. Klik Download</td>
+      <td>analisis lengkap</td>
+      <td>Berkas PDF terunduh &amp; notifikasi "PDF Berhasil Diunduh"</td>
+      <td>File analysis-{id}.pdf tersimpan</td>
+      <td class="pass">Valid</td><td>jsPDF</td>
+    </tr>
+    <tr>
+      <td>14</td><td>UC06 — Unduh saat data tidak tersedia</td>
+      <td>1. Klik Download tanpa data analisis termuat</td>
+      <td>analysisData = null</td>
+      <td>Pesan "Data analisis tidak tersedia."</td>
+      <td>Unduhan dibatalkan</td>
+      <td class="pass">Valid</td><td>Skenario gagal</td>
+    </tr>
+    <!-- UC07 -->
+    <tr>
+      <td>15</td><td>UC07 — Menyimpan Catatan Qayra</td>
+      <td>1. Login Admin<br>2. Buka Detail<br>3. Tulis catatan<br>4. Simpan</td>
+      <td>"Gunakan base matte, hindari shimmer"</td>
+      <td>Notifikasi "Catatan Tersimpan", data diperbarui</td>
+      <td>catatan_qayra tersimpan di Firestore</td>
+      <td class="pass">Valid</td><td>—</td>
+    </tr>
+    <tr>
+      <td>16</td><td>UC07 — Simpan catatan saat koneksi gagal</td>
+      <td>1. Putuskan jaringan<br>2. Klik Simpan Catatan</td>
+      <td>jaringan offline</td>
+      <td>Notifikasi "Gagal Menyimpan"</td>
+      <td>Error tampil, catatan tidak tersimpan</td>
+      <td class="pass">Valid</td><td>Skenario gagal</td>
+    </tr>
+    <!-- UC08 -->
+    <tr>
+      <td>17</td><td>UC08 — Melihat statistik Dashboard Admin</td>
+      <td>1. Login Admin<br>2. Buka Dashboard</td>
+      <td>5 client, 2 admin, 12 analisis</td>
+      <td>Kartu Total Client=5, Total Admin=2, Total Analisis=12 &amp; 3 analisis terbaru</td>
+      <td>Statistik &amp; recent analysis tampil</td>
+      <td class="pass">Valid</td><td>—</td>
+    </tr>
+    <tr>
+      <td>18</td><td>UC08 — Dashboard tanpa data</td>
+      <td>1. Login Admin pada sistem kosong</td>
+      <td>0 user non-admin, 0 analisis</td>
+      <td>Statistik bernilai 0 &amp; "Belum ada analisis terbaru"</td>
+      <td>Empty state tampil</td>
+      <td class="pass">Valid</td><td>Skenario kosong</td>
+    </tr>
+    <!-- UC09 -->
+    <tr>
+      <td>19</td><td>UC09 — Menambah user baru valid</td>
+      <td>1. Users &rarr; Tambah User<br>2. Isi form<br>3. Konfirmasi</td>
+      <td>nama: Dewi, email: dewi@gmail.com, pass: dewi123, role: user, tgl acara: besok</td>
+      <td>User tersimpan, kembali ke daftar user</td>
+      <td>User baru muncul di daftar</td>
+      <td class="pass">Valid</td><td>—</td>
+    </tr>
+    <tr>
+      <td>20</td><td>UC09 — Tambah user dengan email duplikat</td>
+      <td>1. Tambah user dengan email yang sudah terdaftar</td>
+      <td>email: admin@qayra.com</td>
+      <td>Pesan "Email sudah terdaftar. Gunakan email lain."</td>
+      <td>Pembuatan ditolak</td>
+      <td class="pass">Valid</td><td>Skenario gagal</td>
+    </tr>
+    <tr>
+      <td>21</td><td>UC09 — Tambah user password &lt; 6 karakter</td>
+      <td>1. Isi password 3 karakter<br>2. Submit</td>
+      <td>password: 123</td>
+      <td>Validasi "Password minimal 6 karakter"</td>
+      <td>Form tidak terkirim</td>
+      <td class="pass">Valid</td><td>Validasi form</td>
+    </tr>
+    <tr>
+      <td>22</td><td>UC09 — Hapus akun sendiri</td>
+      <td>1. Admin mencoba hapus akunnya sendiri</td>
+      <td>id == currentUser.id</td>
+      <td>Tombol hapus nonaktif (disabled)</td>
+      <td>Penghapusan diri dicegah</td>
+      <td class="pass">Valid</td><td>Skenario gagal</td>
+    </tr>
+    <tr>
+      <td>23</td><td>UC09 — Edit data user</td>
+      <td>1. Pilih user &rarr; Edit<br>2. Ubah nama/status<br>3. Simpan</td>
+      <td>status: inactive</td>
+      <td>Data user diperbarui di daftar</td>
+      <td>Perubahan tersimpan</td>
+      <td class="pass">Valid</td><td>—</td>
+    </tr>
+    <!-- UC10 -->
+    <tr>
+      <td>24</td><td>UC10 — Menghapus data analisis</td>
+      <td>1. Buka Hasil Analisis<br>2. Klik Hapus<br>3. Konfirmasi "Ya, Hapus"</td>
+      <td>id: Ab12Cd34Ef56</td>
+      <td>Data terhapus &amp; notifikasi sukses</td>
+      <td>Baris analisis hilang dari daftar</td>
+      <td class="pass">Valid</td><td>—</td>
+    </tr>
+    <tr>
+      <td>25</td><td>UC10 — Pencarian analisis tidak ditemukan</td>
+      <td>1. Ketik kata kunci yang tidak ada di kolom cari</td>
+      <td>kata kunci: "zzzz"</td>
+      <td>Pesan "Tidak ada hasil ditemukan"</td>
+      <td>Empty state tampil</td>
+      <td class="pass">Valid</td><td>Skenario gagal/kosong</td>
+    </tr>
+    <tr>
+      <td>26</td><td>UC10 — Batal menghapus analisis</td>
+      <td>1. Klik Hapus<br>2. Pilih "Batal"</td>
+      <td>id valid</td>
+      <td>Data tidak dihapus</td>
+      <td>Daftar tetap utuh</td>
+      <td class="pass">Valid</td><td>Skenario batal</td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

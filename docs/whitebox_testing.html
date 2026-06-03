@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>White Box Testing - QAYRA FACIAL ANALYZING</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #222; max-width: 1150px; margin: 0 auto; padding: 32px; background: #fafafa; }
+  h1 { color: #000; border-bottom: 4px solid #C68E2D; padding-bottom: 10px; }
+  h2 { color: #C68E2D; margin-top: 44px; border-left: 5px solid #C68E2D; padding-left: 12px; }
+  h3 { color: #333; margin-top: 24px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  th, td { border: 1px solid #ddd; padding: 7px 10px; text-align: left; font-size: 13px; vertical-align: top; }
+  th { background: #C68E2D; color: #fff; }
+  tr:nth-child(even) { background: #faf6ef; }
+  code { background: #f0eadf; padding: 1px 5px; border-radius: 4px; color: #8a5a00; }
+  pre.plantuml { background: #2b2b2b; color: #e6e6e6; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+  .trace { background: #eef4ff; border-left: 4px solid #2a6fb0; padding: 8px 14px; font-size: 13px; margin: 8px 0; }
+  .cc { background: #000; color: #C68E2D; font-weight: bold; padding: 2px 8px; border-radius: 6px; }
+</style>
+</head>
+<body>
+<h1>White Box Testing</h1>
+<p><strong>Aplikasi:</strong> QAYRA FACIAL ANALYZING — by Qayra Make Up. Pengujian struktural terhadap tiga fungsi inti: proses autentikasi, pembuatan user oleh admin, dan penentuan tipe ringkasan hasil model. Setiap fungsi disertai flowchart, flowgraph, perhitungan <em>cyclomatic complexity</em>, dan basis path.</p>
+
+<!-- ================= FUNGSI 1 ================= -->
+<h2>1. Fungsi <code>loginWithFirebase(email, password)</code></h2>
+<div class="trace">Code traceability: <strong>src/services/firestoreService.ts</strong> baris 91–124</div>
+
+<h3>1.1 Flowchart</h3>
+<pre class="plantuml">
+@startuml
+start
+:Query users_qayra by email;
+:Ambil snapshot;
+if (snapshot kosong?) then (ya)
+  :throw "Email atau password salah";
+  stop
+else (tidak)
+endif
+:Ambil userData (dok pertama);
+if (status == "inactive"?) then (ya)
+  :throw "Akun tidak aktif";
+  stop
+else (tidak)
+endif
+if (password hash kosong?) then (ya)
+  :throw "Akun belum punya password";
+  stop
+else (tidak)
+endif
+:bcrypt.compare(password, hash);
+if (password tidak cocok?) then (ya)
+  :throw "Email atau password salah";
+  stop
+else (tidak)
+endif
+:updateDoc lastLoginAt;
+:return data user (tanpa password);
+stop
+@enduml
+</pre>
+
+<h3>1.2 Flowgraph</h3>
+<pre class="plantuml">
+@startuml
+circle "1" as N1
+circle "2" as N2
+circle "3" as N3
+circle "4" as N4
+circle "5" as N5
+circle "6" as N6
+circle "7" as N7
+circle "E" as NE
+
+N1 --> N2 : email tdk ditemukan
+N1 --> N3 : ditemukan
+N3 --> N2 : inactive
+N3 --> N4 : aktif
+N4 --> N2 : hash kosong
+N4 --> N5 : hash ada
+N5 --> N2 : password salah
+N5 --> N6 : password benar
+N6 --> N7 : updateDoc + return
+N2 --> NE
+N7 --> NE
+@enduml
+</pre>
+<p><em>Keterangan node:</em> 1 = query &amp; cek snapshot; 2 = node error (throw); 3 = cek status; 4 = cek hash; 5 = cek bcrypt; 6 = update lastLoginAt; 7 = return; E = exit.</p>
+
+<h3>1.3 Cyclomatic Complexity</h3>
+<table>
+  <thead><tr><th>Metode</th><th>Rumus</th><th>Perhitungan</th><th>Hasil</th></tr></thead>
+  <tbody>
+    <tr><td>Predikat (P)</td><td>V(G) = P + 1</td><td>4 keputusan + 1</td><td><span class="cc">5</span></td></tr>
+    <tr><td>Edge-Node</td><td>V(G) = E − N + 2</td><td>11 − 8 + 2</td><td><span class="cc">5</span></td></tr>
+    <tr><td>Region</td><td>V(G) = R</td><td>5 region</td><td><span class="cc">5</span></td></tr>
+  </tbody>
+</table>
+
+<h3>1.4 Basis Path &amp; Test Case</h3>
+<table>
+  <thead><tr><th>Path</th><th>Jalur Node</th><th>Kondisi</th><th>Expected</th></tr></thead>
+  <tbody>
+    <tr><td>P1</td><td>1-2-E</td><td>Email tidak terdaftar</td><td>throw "Email atau password salah."</td></tr>
+    <tr><td>P2</td><td>1-3-2-E</td><td>Akun status inactive</td><td>throw "Akun tidak aktif. Hubungi administrator."</td></tr>
+    <tr><td>P3</td><td>1-3-4-2-E</td><td>Hash password kosong</td><td>throw "Akun belum memiliki password."</td></tr>
+    <tr><td>P4</td><td>1-3-4-5-2-E</td><td>Password tidak cocok</td><td>throw "Email atau password salah."</td></tr>
+    <tr><td>P5</td><td>1-3-4-5-6-7-E</td><td>Semua valid</td><td>return UserData &amp; update lastLoginAt</td></tr>
+  </tbody>
+</table>
+
+<!-- ================= FUNGSI 2 ================= -->
+<h2>2. Fungsi <code>createUserAsAdmin(userData)</code></h2>
+<div class="trace">Code traceability: <strong>src/services/firestoreService.ts</strong> baris 179–213</div>
+
+<h3>2.1 Flowchart</h3>
+<pre class="plantuml">
+@startuml
+start
+:Ubah email ke lowercase;
+:Query users_qayra by email;
+if (email sudah terdaftar?) then (ya)
+  :throw "Email sudah terdaftar";
+  stop
+else (tidak)
+endif
+:Hash password (bcrypt cost 10);
+:Susun objek user (status=active, timestamps);
+:setDoc ke users_qayra;
+:return user tanpa password;
+stop
+@enduml
+</pre>
+
+<h3>2.2 Flowgraph</h3>
+<pre class="plantuml">
+@startuml
+circle "1" as N1
+circle "2" as N2
+circle "3" as N3
+circle "E" as NE
+N1 --> N2 : email duplikat
+N1 --> N3 : email unik
+N3 --> NE : setDoc + return
+N2 --> NE
+@enduml
+</pre>
+<p><em>Keterangan node:</em> 1 = lowercase email &amp; cek duplikat; 2 = node error (throw); 3 = hash + setDoc + return; E = exit.</p>
+
+<h3>2.3 Cyclomatic Complexity</h3>
+<table>
+  <thead><tr><th>Metode</th><th>Perhitungan</th><th>Hasil</th></tr></thead>
+  <tbody>
+    <tr><td>V(G) = P + 1</td><td>1 keputusan + 1</td><td><span class="cc">2</span></td></tr>
+    <tr><td>V(G) = E − N + 2</td><td>4 − 4 + 2</td><td><span class="cc">2</span></td></tr>
+    <tr><td>V(G) = R</td><td>2 region</td><td><span class="cc">2</span></td></tr>
+  </tbody>
+</table>
+
+<h3>2.4 Basis Path &amp; Test Case</h3>
+<table>
+  <thead><tr><th>Path</th><th>Jalur Node</th><th>Kondisi</th><th>Expected</th></tr></thead>
+  <tbody>
+    <tr><td>P1</td><td>1-2-E</td><td>Email sudah dipakai user lain</td><td>throw "Email sudah terdaftar. Gunakan email lain."</td></tr>
+    <tr><td>P2</td><td>1-3-E</td><td>Email unik &amp; valid</td><td>User tersimpan, return UserData (status active)</td></tr>
+  </tbody>
+</table>
+
+<!-- ================= FUNGSI 3 ================= -->
+<h2>3. Fungsi <code>getSummaryType(sortedIndices, config)</code></h2>
+<div class="trace">Code traceability: <strong>src/services/tfliteService.ts</strong> baris 309–326</div>
+
+<h3>3.1 Flowchart</h3>
+<pre class="plantuml">
+@startuml
+start
+:Ambil primary, secondary, tertiary;
+if (primary - secondary >= dominance_gap?) then (ya)
+  :return "single_dominant";
+  stop
+else (tidak)
+  if (secondary >= secondary_threshold?) then (ya)
+    :return "dual_blend";
+    stop
+  else (tidak)
+    if (tertiary >= tertiary_threshold?) then (ya)
+      :return "multi_blend";
+      stop
+    else (tidak)
+      :return "single_dominant";
+      stop
+    endif
+  endif
+endif
+@enduml
+</pre>
+
+<h3>3.2 Flowgraph</h3>
+<pre class="plantuml">
+@startuml
+circle "1" as N1
+circle "2" as N2
+circle "3" as N3
+circle "4" as N4
+circle "5" as N5
+circle "E" as NE
+N1 --> N2 : gap >= threshold (single)
+N1 --> N3 : gap kecil
+N3 --> N2 : secondary >= thr (dual)
+N3 --> N4 : secondary < thr
+N4 --> N2 : tertiary >= thr (multi)
+N4 --> N5 : tertiary < thr (single default)
+N2 --> NE
+N5 --> NE
+@enduml
+</pre>
+<p><em>Keterangan node:</em> 1 = cek dominance_gap; 3 = cek secondary_threshold; 4 = cek tertiary_threshold; 2 = node return hasil; 5 = return default single_dominant; E = exit.</p>
+
+<h3>3.3 Cyclomatic Complexity</h3>
+<table>
+  <thead><tr><th>Metode</th><th>Perhitungan</th><th>Hasil</th></tr></thead>
+  <tbody>
+    <tr><td>V(G) = P + 1</td><td>3 keputusan + 1</td><td><span class="cc">4</span></td></tr>
+    <tr><td>V(G) = E − N + 2</td><td>8 − 6 + 2</td><td><span class="cc">4</span></td></tr>
+    <tr><td>V(G) = R</td><td>4 region</td><td><span class="cc">4</span></td></tr>
+  </tbody>
+</table>
+
+<h3>3.4 Basis Path &amp; Test Case</h3>
+<table>
+  <thead><tr><th>Path</th><th>Jalur Node</th><th>Data Uji (prob)</th><th>Expected</th></tr></thead>
+  <tbody>
+    <tr><td>P1</td><td>1-2-E</td><td>primary 0.84, secondary 0.10 (gap besar)</td><td>"single_dominant"</td></tr>
+    <tr><td>P2</td><td>1-3-2-E</td><td>primary 0.45, secondary 0.40</td><td>"dual_blend"</td></tr>
+    <tr><td>P3</td><td>1-3-4-2-E</td><td>primary 0.34, secondary 0.20, tertiary 0.18</td><td>"multi_blend"</td></tr>
+    <tr><td>P4</td><td>1-3-4-5-E</td><td>primary 0.30, secondary 0.10, tertiary 0.05</td><td>"single_dominant" (default)</td></tr>
+  </tbody>
+</table>
+
+</body>
+</html>

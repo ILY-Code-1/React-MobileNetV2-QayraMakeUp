@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Acceptance Testing (UAT) - QAYRA FACIAL ANALYZING</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #222; max-width: 1300px; margin: 0 auto; padding: 32px; background: #fafafa; }
+  h1 { color: #000; border-bottom: 4px solid #C68E2D; padding-bottom: 10px; }
+  p.sub { color: #555; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; font-size: 13px; vertical-align: top; }
+  th { background: #C68E2D; color: #fff; }
+  tr:nth-child(even) { background: #faf6ef; }
+  .pass { color: #15803d; font-weight: bold; }
+  .role { display:inline-block; background:#000; color:#C68E2D; font-size:11px; padding:2px 8px; border-radius:10px; }
+</style>
+</head>
+<body>
+<h1>User Acceptance Testing (UAT)</h1>
+<p class="sub"><strong>Aplikasi:</strong> QAYRA FACIAL ANALYZING — by Qayra Make Up. Pengujian penerimaan dari sudut pandang pengguna akhir. Role penguji konsisten dengan aktor use case: <span class="role">Client (User)</span> dan <span class="role">Admin Qayra</span>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>No</th><th>Skenario Pengujian</th><th>Role yang Menguji</th><th>Fitur yang Diuji</th>
+      <th>Langkah Pengujian</th><th>Ekspektasi Hasil</th><th>Status (Pass/Fail)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Client masuk ke aplikasi menggunakan akun yang diberikan admin</td>
+      <td>Client</td>
+      <td>UC01 — Login</td>
+      <td>Buka aplikasi &rarr; isi email &amp; password &rarr; tekan LOGIN</td>
+      <td>Berhasil masuk dan melihat Dashboard berisi informasi client &amp; status terakhir</td>
+      <td class="pass">Pass</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Client keluar dari aplikasi setelah selesai</td>
+      <td>Client</td>
+      <td>UC02 — Logout</td>
+      <td>Tekan ikon logout &rarr; pilih "Ya, Keluar"</td>
+      <td>Kembali ke halaman Login dan sesi berakhir</td>
+      <td class="pass">Pass</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Client mengecek kondisi kulit wajah sebelum acara dengan mengambil foto</td>
+      <td>Client</td>
+      <td>UC03 — Melakukan Analisis Kulit Wajah</td>
+      <td>Buka menu Kamera &rarr; ambil foto wajah &rarr; konfirmasi foto &rarr; tunggu proses</td>
+      <td>Muncul hasil kondisi kulit (mis. "Oily Skin") beserta tingkat keyakinan &amp; rekomendasi</td>
+      <td class="pass">Pass</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Client mengunggah foto dari galeri untuk dianalisis</td>
+      <td>Client</td>
+      <td>UC03 — Melakukan Analisis Kulit Wajah</td>
+      <td>Buka Kamera &rarr; tekan Upload &rarr; pilih foto &rarr; konfirmasi</td>
+      <td>Foto dianalisis dan hasilnya tersimpan ke riwayat</td>
+      <td class="pass">Pass</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>Client melihat seluruh riwayat pengecekan kulitnya</td>
+      <td>Client</td>
+      <td>UC04 — Melihat Riwayat Analisis</td>
+      <td>Buka menu Riwayat</td>
+      <td>Daftar analisis tampil terurut dari yang terbaru lengkap dengan tanggal &amp; status</td>
+      <td class="pass">Pass</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Client membuka detail salah satu hasil analisis</td>
+      <td>Client</td>
+      <td>UC05 — Melihat Detail Hasil Analisis</td>
+      <td>Pada Riwayat, tekan tombol detail pada salah satu baris</td>
+      <td>Tampil ringkasan hasil, catatan klinis, prioritas perawatan, protokol persiapan, distribusi probabilitas, &amp; foto</td>
+      <td class="pass">Pass</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>Client mengunduh laporan hasil analisis untuk dibawa ke perias</td>
+      <td>Client</td>
+      <td>UC06 — Mengunduh Laporan PDF</td>
+      <td>Buka detail analisis &rarr; tekan tombol Download</td>
+      <td>Berkas PDF berisi laporan analisis terunduh ke perangkat</td>
+      <td class="pass">Pass</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>Admin menambahkan catatan khusus pada hasil analisis klien</td>
+      <td>Admin</td>
+      <td>UC07 — Menambahkan Catatan Qayra</td>
+      <td>Buka detail analisis &rarr; tulis catatan pada kolom Catatan Qayra &rarr; tekan Simpan Catatan</td>
+      <td>Muncul notifikasi "Catatan Tersimpan" dan catatan tersimpan permanen</td>
+      <td class="pass">Pass</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>Admin memantau ringkasan jumlah klien, admin, dan analisis</td>
+      <td>Admin</td>
+      <td>UC08 — Melihat Dashboard Admin</td>
+      <td>Login sebagai admin &rarr; buka Dashboard</td>
+      <td>Tampil kartu Total Client, Total Admin, Total Analisis, serta daftar Analisis Terbaru</td>
+      <td class="pass">Pass</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>Admin mendaftarkan akun klien baru beserta tanggal acara</td>
+      <td>Admin</td>
+      <td>UC09 — Mengelola Data User (Tambah)</td>
+      <td>Menu User &rarr; Tambah User &rarr; isi data &rarr; konfirmasi "Ya, Daftarkan"</td>
+      <td>Akun klien baru berhasil dibuat dan muncul di daftar user</td>
+      <td class="pass">Pass</td>
+    </tr>
+    <tr>
+      <td>11</td>
+      <td>Admin memperbarui data atau menonaktifkan akun klien</td>
+      <td>Admin</td>
+      <td>UC09 — Mengelola Data User (Edit)</td>
+      <td>Menu User &rarr; pilih user &rarr; Edit &rarr; ubah data/status &rarr; Simpan</td>
+      <td>Perubahan data user tersimpan dan terlihat di daftar</td>
+      <td class="pass">Pass</td>
+    </tr>
+    <tr>
+      <td>12</td>
+      <td>Admin menghapus akun klien yang tidak diperlukan</td>
+      <td>Admin</td>
+      <td>UC09 — Mengelola Data User (Hapus)</td>
+      <td>Menu User &rarr; tekan hapus pada user &rarr; konfirmasi "Ya, Hapus"</td>
+      <td>User terhapus dari daftar (akun sendiri tidak bisa dihapus)</td>
+      <td class="pass">Pass</td>
+    </tr>
+    <tr>
+      <td>13</td>
+      <td>Admin menelusuri dan membuka data analisis seluruh klien</td>
+      <td>Admin</td>
+      <td>UC10 — Mengelola Data Analisis (Lihat/Cari)</td>
+      <td>Menu Analisis &rarr; ketik nama/email pada kolom cari &rarr; buka detail</td>
+      <td>Data analisis terfilter sesuai pencarian dan detail dapat dibuka</td>
+      <td class="pass">Pass</td>
+    </tr>
+    <tr>
+      <td>14</td>
+      <td>Admin menghapus data analisis yang sudah tidak relevan</td>
+      <td>Admin</td>
+      <td>UC10 — Mengelola Data Analisis (Hapus)</td>
+      <td>Menu Analisis &rarr; tekan hapus &rarr; konfirmasi "Ya, Hapus"</td>
+      <td>Data analisis terhapus dan daftar diperbarui</td>
+      <td class="pass">Pass</td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>
